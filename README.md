@@ -45,10 +45,10 @@ Some of the checklists in this doc are for **C4 (🐺)** and some of them are fo
 
 # zkSync Era audit details
 - Total Prize Pool: $250,000 in USDC 
-  - HM awards: $181,088.50 in USDC 
-  - Analysis awards: $10,975 in USDC 
+  - HM awards: $208.526 in USDC 
+  - Analysis awards: $0 in USDC 
   - QA awards: $5,487 in USDC
-  - Bot Race awards: $16,462 USDC 
+  - Bot Race awards: $0 USDC 
   - Gas awards:  $5,487 in USDC
   - Judge awards: $18,000 in USDC 
   - Lookout awards: $12,000 in USDC
