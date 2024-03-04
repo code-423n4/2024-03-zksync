@@ -1,17 +1,3 @@
-# ✨ So you want to run an audit
-
-This `README.md` contains a set of checklists for our audit collaboration.
-
-Your audit will use two repos: 
-- **an _audit_ repo** (this one), which is used for scoping your audit and for providing information to wardens
-- **a _findings_ repo**, where issues are submitted (shared with you after the audit) 
-
-Ultimately, when we launch the audit, this repo will be made public and will contain the smart contracts to be reviewed and all the information needed for audit participants. The findings repo will be made public after the audit report is published and your team has mitigated the identified issues.
-
-Some of the checklists in this doc are for **C4 (🐺)** and some of them are for **you as the audit sponsor (⭐️)**.
-
----
-
 # Repo setup
 
 ## ⭐️ Sponsor: Add code to this repo
@@ -151,4 +137,4 @@ _Note for C4 wardens: Anything included in this `Automated Findings / Publicly K
 
 ## Miscellaneous
 
-Employees of [SPONSOR NAME] and employees' family members are ineligible to participate in this audit.
+Employees of zkSync and employees' family members are ineligible to participate in this audit.
