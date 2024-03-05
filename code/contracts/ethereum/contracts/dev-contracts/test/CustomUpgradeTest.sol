@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.13;
+pragma solidity 0.8.20;
 
-import "../../zksync/libraries/Diamond.sol";
+import "../../state-transition/libraries/Diamond.sol";
 import "../../upgrades/BaseZkSyncUpgrade.sol";
 
 contract CustomUpgradeTest is BaseZkSyncUpgrade {
+    // add this to be excluded from coverage report
+    function test() internal virtual {}
+
     event Test();
 
     /// @notice Placeholder function for custom logic for upgrading L1 contract.
     /// Typically this function will never be used.
     /// @param _customCallDataForUpgrade Custom data for upgrade, which may be interpreted differently for each upgrade.
-    function _upgradeL1Contract(bytes calldata _customCallDataForUpgrade) internal {
+    function _upgradeL1Contract(bytes calldata _customCallDataForUpgrade) internal override {
         emit Test();
     }
 
@@ -19,13 +22,11 @@ contract CustomUpgradeTest is BaseZkSyncUpgrade {
     /// Typically this function will never be used.
     /// @param _customCallDataForUpgrade Custom data for an upgrade, which may be interpreted differently for each
     /// upgrade.
-    function _postUpgrade(bytes calldata _customCallDataForUpgrade) internal virtual {}
+    function _postUpgrade(bytes calldata _customCallDataForUpgrade) internal override {}
 
     /// @notice The main function that will be called by the upgrade proxy.
     /// @param _proposedUpgrade The upgrade to be executed.
     function upgrade(ProposedUpgrade calldata _proposedUpgrade) public override returns (bytes32) {
-        super.upgrade(_proposedUpgrade);
-
         _setNewProtocolVersion(_proposedUpgrade.newProtocolVersion);
         _upgradeL1Contract(_proposedUpgrade.l1ContractsUpgradeCalldata);
         _upgradeVerifier(_proposedUpgrade.verifier, _proposedUpgrade.verifierParams);
@@ -38,7 +39,6 @@ contract CustomUpgradeTest is BaseZkSyncUpgrade {
             _proposedUpgrade.newProtocolVersion
         );
 
-        _setAllowList(IAllowList(_proposedUpgrade.newAllowList));
         _postUpgrade(_proposedUpgrade.postUpgradeCalldata);
 
         emit UpgradeComplete(_proposedUpgrade.newProtocolVersion, txHash, _proposedUpgrade);

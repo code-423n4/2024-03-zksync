@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 /**
  * @author Matter Labs
- * @notice System smart contract that is responsible for deploying other smart contracts on zkSync.
+ * @notice System smart contract that is responsible for deploying other smart contracts on a zkSync hyperchain.
  */
 interface IL2ContractDeployer {
     /// @notice A struct that describes a forced deployment on an address.
@@ -28,9 +28,5 @@ interface IL2ContractDeployer {
     /// @param _salt The create2 salt.
     /// @param _bytecodeHash The correctly formatted hash of the bytecode.
     /// @param _input The constructor calldata.
-    function create2(
-        bytes32 _salt,
-        bytes32 _bytecodeHash,
-        bytes calldata _input
-    ) external;
+    function create2(bytes32 _salt, bytes32 _bytecodeHash, bytes calldata _input) external;
 }

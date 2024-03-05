@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.13;
+pragma solidity 0.8.20;
 
 /**
  * @author Matter Labs
  * @custom:security-contact security@matterlabs.dev
  * @notice Smart contract for sending arbitrary length messages to L1
  * @dev by default ZkSync can send fixed-length messages on L1.
- * A fixed length message has 4 parameters `senderAddress` `isService`, `key`, `value`,
+ * A fixed length message has 4 parameters `senderAddress`, `isService`, `key`, `value`,
  * the first one is taken from the context, the other three are chosen by the sender.
  * @dev To send a variable-length message we use this trick:
  * - This system contract accepts an arbitrary length message and sends a fixed length message with
- * parameters `senderAddress == this`, `marker == true`, `key == msg.sender`, `value == keccak256(message)`.
+ * parameters `senderAddress == this`, `isService == true`, `key == msg.sender`, `value == keccak256(message)`.
  * - The contract on L1 accepts all sent messages and if the message came from this system contract
  * it requires that the preimage of `value` be provided.
  */
@@ -44,17 +44,13 @@ interface IContractDeployer {
 
     /// @notice This method is to be used only during an upgrade to set bytecodes on specific addresses.
     /// @param _deployParams A set of parameters describing force deployment.
-    function forceDeployOnAddresses(ForceDeployment[] calldata _deployParams) external;
+    function forceDeployOnAddresses(ForceDeployment[] calldata _deployParams) external payable;
 
     /// @notice Creates a new contract at a determined address using the `CREATE2` salt on L2
     /// @param _salt a unique value to create the deterministic address of the new contract
     /// @param _bytecodeHash the bytecodehash of the new contract to be deployed
     /// @param _input the calldata to be sent to the constructor of the new contract
-    function create2(
-        bytes32 _salt,
-        bytes32 _bytecodeHash,
-        bytes calldata _input
-    ) external;
+    function create2(bytes32 _salt, bytes32 _bytecodeHash, bytes calldata _input) external returns (address);
 }
 
 /**
@@ -62,7 +58,7 @@ interface IContractDeployer {
  * @custom:security-contact security@matterlabs.dev
  * @notice Interface for the contract that is used to simulate ETH on L2.
  */
-interface IEthToken {
+interface IBaseToken {
     /// @notice Allows the withdrawal of ETH to a given L1 receiver along with an additional message.
     /// @param _l1Receiver The address on L1 to receive the withdrawn ETH.
     /// @param _additionalData Additional message or data to be sent alongside the withdrawal.
@@ -77,7 +73,7 @@ address constant DEPLOYER_SYSTEM_CONTRACT = address(SYSTEM_CONTRACTS_OFFSET + 0x
 
 IL2Messenger constant L2_MESSENGER = IL2Messenger(address(SYSTEM_CONTRACTS_OFFSET + 0x08));
 
-IEthToken constant L2_ETH_ADDRESS = IEthToken(address(SYSTEM_CONTRACTS_OFFSET + 0x0a));
+IBaseToken constant L2_BASE_TOKEN_ADDRESS = IBaseToken(address(SYSTEM_CONTRACTS_OFFSET + 0x0a));
 
 /**
  * @author Matter Labs
@@ -86,7 +82,7 @@ IEthToken constant L2_ETH_ADDRESS = IEthToken(address(SYSTEM_CONTRACTS_OFFSET + 
  */
 library L2ContractHelper {
     /// @dev The prefix used to create CREATE2 addresses.
-    bytes32 constant CREATE2_PREFIX = keccak256("zksyncCreate2");
+    bytes32 private constant CREATE2_PREFIX = keccak256("zksyncCreate2");
 
     /// @notice Sends L2 -> L1 arbitrary-long message through the system contract messenger.
     /// @param _message Data to be sent to L1.
@@ -117,7 +113,7 @@ library L2ContractHelper {
     }
 }
 
-/// @notice Structure used to represent zkSync transaction.
+/// @notice Structure used to represent a zkSync transaction.
 struct Transaction {
     // The type of the transaction.
     uint256 txType;

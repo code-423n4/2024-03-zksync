@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.13;
+pragma solidity 0.8.20;
 
 /**
  * @author Matter Labs
@@ -9,7 +9,7 @@ pragma solidity ^0.8.13;
  */
 library L2ContractHelper {
     /// @dev The prefix used to create CREATE2 addresses.
-    bytes32 constant CREATE2_PREFIX = keccak256("zksyncCreate2");
+    bytes32 private constant CREATE2_PREFIX = keccak256("zksyncCreate2");
 
     /// @notice Validate the bytecode format and calculate its hash.
     /// @param _bytecode The bytecode to hash.
@@ -23,7 +23,7 @@ library L2ContractHelper {
         require(_bytecode.length % 32 == 0, "pq");
 
         uint256 bytecodeLenInWords = _bytecode.length / 32;
-        require(bytecodeLenInWords < 2**16, "pp"); // bytecode length must be less than 2^16 words
+        require(bytecodeLenInWords < 2 ** 16, "pp"); // bytecode length must be less than 2^16 words
         require(bytecodeLenInWords % 2 == 1, "ps"); // bytecode length in words must be odd
         hashedBytecode = sha256(_bytecode) & 0x00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
         // Setting the version of the hash

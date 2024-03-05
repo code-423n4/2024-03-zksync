@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity 0.8.20;
 
-// solhint-disable max-line-length
-
-import {DiamondCutTest} from "./_DiamondCut_Shared.t.sol";
-import {DiamondCutTestContract} from "../../../../../cache/solpp-generated-contracts/dev-contracts/test/DiamondCutTestContract.sol";
-import {ExecutorFacet} from "../../../../../cache/solpp-generated-contracts/zksync/facets/Executor.sol";
-import {GettersFacet} from "../../../../../cache/solpp-generated-contracts/zksync/facets/Getters.sol";
-import {MailboxFacet} from "../../../../../cache/solpp-generated-contracts/zksync/facets/Mailbox.sol";
-import {Diamond} from "../../../../../cache/solpp-generated-contracts/zksync/libraries/Diamond.sol";
 import {Utils} from "../Utils/Utils.sol";
+import {DiamondCutTest} from "./_DiamondCut_Shared.t.sol";
 
-// solhint-enable max-line-length
+import {Diamond} from "solpp/state-transition/libraries/Diamond.sol";
+import {DiamondCutTestContract} from "solpp/dev-contracts/test/DiamondCutTestContract.sol";
+import {ExecutorFacet} from "solpp/state-transition/chain-deps/facets/Executor.sol";
+import {GettersFacet} from "solpp/state-transition/chain-deps/facets/Getters.sol";
+import {MailboxFacet} from "solpp/state-transition/chain-deps/facets/Mailbox.sol";
 
 contract FacetCutTest is DiamondCutTest {
     MailboxFacet private mailboxFacet;
@@ -233,7 +230,7 @@ contract FacetCutTest is DiamondCutTest {
 
         Diamond.FacetCut[] memory facetCuts1 = new Diamond.FacetCut[](1);
         facetCuts1[0] = Diamond.FacetCut({
-            facet: address(0x000000000000000000000000000000000000000A),
+            facet: address(executorFacet2),
             action: Diamond.Action.Add,
             isFreezable: true,
             selectors: selectors
@@ -251,7 +248,7 @@ contract FacetCutTest is DiamondCutTest {
 
         Diamond.FacetCut[] memory facetCuts2 = new Diamond.FacetCut[](1);
         facetCuts2[0] = Diamond.FacetCut({
-            facet: address(0x000000000000000000000000000000000000000A),
+            facet: address(executorFacet2),
             action: Diamond.Action.Replace,
             isFreezable: false,
             selectors: selectors
@@ -268,6 +265,50 @@ contract FacetCutTest is DiamondCutTest {
         uint256 numOfFacetsAfterReplace = diamondCutTestContract.facetAddresses().length;
 
         assertEq(numOfFacetsAfterAdd, numOfFacetsAfterReplace);
+    }
+
+    function test_RevertWhen_AddingFacetWithNoBytecode() public {
+        bytes4[] memory selectors = new bytes4[](1);
+        selectors[0] = 0x00000005;
+
+        Diamond.FacetCut[] memory facetCuts1 = new Diamond.FacetCut[](1);
+        facetCuts1[0] = Diamond.FacetCut({
+            facet: address(1),
+            action: Diamond.Action.Add,
+            isFreezable: true,
+            selectors: selectors
+        });
+
+        Diamond.DiamondCutData memory diamondCutData1 = Diamond.DiamondCutData({
+            facetCuts: facetCuts1,
+            initAddress: address(0),
+            initCalldata: bytes("")
+        });
+
+        vm.expectRevert(abi.encodePacked("G"));
+        diamondCutTestContract.diamondCut(diamondCutData1);
+    }
+
+    function test_RevertWhen_ReplacingFacetWithNoBytecode() public {
+        bytes4[] memory selectors = new bytes4[](1);
+        selectors[0] = 0x00000005;
+
+        Diamond.FacetCut[] memory facetCuts1 = new Diamond.FacetCut[](1);
+        facetCuts1[0] = Diamond.FacetCut({
+            facet: address(1),
+            action: Diamond.Action.Replace,
+            isFreezable: true,
+            selectors: selectors
+        });
+
+        Diamond.DiamondCutData memory diamondCutData1 = Diamond.DiamondCutData({
+            facetCuts: facetCuts1,
+            initAddress: address(0),
+            initCalldata: bytes("")
+        });
+
+        vm.expectRevert(abi.encodePacked("K"));
+        diamondCutTestContract.diamondCut(diamondCutData1);
     }
 
     function test_RevertWhen_AddingFacetWithDifferentFreezabilityThanExistingFacets() public {

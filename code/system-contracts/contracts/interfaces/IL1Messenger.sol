@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 /// @dev The log passed from L2
 /// @param l2ShardId The shard identifier, 0 - rollup, 1 - porter. All other values are not used but are reserved for the future
@@ -32,6 +32,11 @@ bytes32 constant L2_L1_LOGS_TREE_DEFAULT_LEAF_HASH = 0x72abee45b59e344af8a6e5202
 /// @dev The current version of state diff compression being used.
 uint256 constant STATE_DIFF_COMPRESSION_VERSION_NUMBER = 1;
 
+/**
+ * @author Matter Labs
+ * @custom:security-contact security@matterlabs.dev
+ * @notice The interface of the L1 Messenger contract, responsible for sending messages to L1.
+ */
 interface IL1Messenger {
     // Possibly in the future we will be able to track the messages sent to L1 with
     // some hooks in the VM. For now, it is much easier to track them with L2 events.

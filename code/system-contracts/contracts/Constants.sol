@@ -1,22 +1,23 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
-import {IAccountCodeStorage}  from "./interfaces/IAccountCodeStorage.sol";
+import {IAccountCodeStorage} from "./interfaces/IAccountCodeStorage.sol";
 import {INonceHolder} from "./interfaces/INonceHolder.sol";
 import {IContractDeployer} from "./interfaces/IContractDeployer.sol";
 import {IKnownCodesStorage} from "./interfaces/IKnownCodesStorage.sol";
 import {IImmutableSimulator} from "./interfaces/IImmutableSimulator.sol";
-import {IEthToken} from "./interfaces/IEthToken.sol";
+import {IBaseToken} from "./interfaces/IBaseToken.sol";
 import {IL1Messenger} from "./interfaces/IL1Messenger.sol";
 import {ISystemContext} from "./interfaces/ISystemContext.sol";
 import {ICompressor} from "./interfaces/ICompressor.sol";
 import {IComplexUpgrader} from "./interfaces/IComplexUpgrader.sol";
 import {IBootloaderUtilities} from "./interfaces/IBootloaderUtilities.sol";
+import {IPubdataChunkPublisher} from "./interfaces/IPubdataChunkPublisher.sol";
 
 /// @dev All the system contracts introduced by zkSync have their addresses
 /// started from 2^15 in order to avoid collision with Ethereum precompiles.
-uint160 constant SYSTEM_CONTRACTS_OFFSET = 0x8000; // 2^15
+uint160 constant SYSTEM_CONTRACTS_OFFSET = {{SYSTEM_CONTRACTS_OFFSET}}; // 2^15
 
 /// @dev All the system contracts must be located in the kernel space,
 /// i.e. their addresses must be below 2^16.
@@ -27,12 +28,10 @@ address constant SHA256_SYSTEM_CONTRACT = address(0x02);
 address constant ECADD_SYSTEM_CONTRACT = address(0x06);
 address constant ECMUL_SYSTEM_CONTRACT = address(0x07);
 
-/// @dev The current maximum deployed precompile address.
-/// Note: currently only two precompiles are deployed:
-/// 0x01 - ecrecover
-/// 0x02 - sha256
-/// Important! So the constant should be updated if more precompiles are deployed.
-uint256 constant CURRENT_MAX_PRECOMPILE_ADDRESS = uint256(uint160(SHA256_SYSTEM_CONTRACT));
+/// @dev The maximal possible address of an L1-like precompie. These precompiles maintain the following properties:
+/// - Their extcodehash is EMPTY_STRING_KECCAK
+/// - Their extcodesize is 0 despite having a bytecode formally deployed there.
+uint256 constant CURRENT_MAX_PRECOMPILE_ADDRESS = 0xff;
 
 address payable constant BOOTLOADER_FORMAL_ADDRESS = payable(address(SYSTEM_CONTRACTS_OFFSET + 0x01));
 IAccountCodeStorage constant ACCOUNT_CODE_STORAGE_SYSTEM_CONTRACT = IAccountCodeStorage(
@@ -51,19 +50,27 @@ address constant FORCE_DEPLOYER = address(SYSTEM_CONTRACTS_OFFSET + 0x07);
 IL1Messenger constant L1_MESSENGER_CONTRACT = IL1Messenger(address(SYSTEM_CONTRACTS_OFFSET + 0x08));
 address constant MSG_VALUE_SYSTEM_CONTRACT = address(SYSTEM_CONTRACTS_OFFSET + 0x09);
 
-IEthToken constant ETH_TOKEN_SYSTEM_CONTRACT = IEthToken(address(SYSTEM_CONTRACTS_OFFSET + 0x0a));
+IBaseToken constant BASE_TOKEN_SYSTEM_CONTRACT = IBaseToken(address(SYSTEM_CONTRACTS_OFFSET + 0x0a));
 
-address constant KECCAK256_SYSTEM_CONTRACT = address(SYSTEM_CONTRACTS_OFFSET + 0x10);
+// Hardcoded because even for tests we should keep the address. (Instead `SYSTEM_CONTRACTS_OFFSET + 0x10`)
+// Precompile call depends on it.
+// And we don't want to mock this contract.
+address constant KECCAK256_SYSTEM_CONTRACT = address(0x8010);
 
 ISystemContext constant SYSTEM_CONTEXT_CONTRACT = ISystemContext(payable(address(SYSTEM_CONTRACTS_OFFSET + 0x0b)));
 
 IBootloaderUtilities constant BOOTLOADER_UTILITIES = IBootloaderUtilities(address(SYSTEM_CONTRACTS_OFFSET + 0x0c));
 
+// It will be a different value for tests, while shouldn't. But for now, this constant is not used by other contracts, so that's fine.
 address constant EVENT_WRITER_CONTRACT = address(SYSTEM_CONTRACTS_OFFSET + 0x0d);
 
 ICompressor constant COMPRESSOR_CONTRACT = ICompressor(address(SYSTEM_CONTRACTS_OFFSET + 0x0e));
 
 IComplexUpgrader constant COMPLEX_UPGRADER_CONTRACT = IComplexUpgrader(address(SYSTEM_CONTRACTS_OFFSET + 0x0f));
+
+IPubdataChunkPublisher constant PUBDATA_CHUNK_PUBLISHER = IPubdataChunkPublisher(
+    address(SYSTEM_CONTRACTS_OFFSET + 0x11)
+);
 
 /// @dev If the bitwise AND of the extraAbi[2] param when calling the MSG_VALUE_SIMULATOR
 /// is non-zero, the call will be assumed to be a system one.
@@ -82,7 +89,7 @@ bytes32 constant CREATE_PREFIX = 0x63bae3a9951d38e8a3fbb7b70909afc1200610fc5bc55
 /// @dev Each state diff consists of 156 bytes of actual data and 116 bytes of unused padding, needed for circuit efficiency.
 uint256 constant STATE_DIFF_ENTRY_SIZE = 272;
 
-/// @dev While the "real" amount of pubdata that can be sent rarely exceeds the 110k - 120k, it is better to
+/// @dev While the "real" amount of pubdata that can be sent rarely exceeds the BLOB_SIZE_BYTES * MAX_NUMBER_OF_BLOBS, it is better to
 /// allow the operator to provide any reasonably large value in order to avoid unneeded constraints on the operator.
 uint256 constant MAX_ALLOWED_PUBDATA_PER_BATCH = 520000;
 
@@ -94,12 +101,14 @@ enum SystemLogKey {
     PREV_BATCH_HASH_KEY,
     CHAINED_PRIORITY_TXN_HASH_KEY,
     NUMBER_OF_LAYER_1_TXS_KEY,
+    BLOB_ONE_HASH_KEY,
+    BLOB_TWO_HASH_KEY,
     EXPECTED_SYSTEM_CONTRACT_UPGRADE_TX_HASH_KEY
 }
 
-/// @dev The number of leaves in the L2->L1 log Merkle tree. 
-/// While formally a tree of any length is acceptable, the node supports only a constant length of 2048 leaves.
-uint256 constant L2_TO_L1_LOGS_MERKLE_TREE_LEAVES = 2048;
+/// @dev The number of leaves in the L2->L1 log Merkle tree.
+/// While formally a tree of any length is acceptable, the node supports only a constant length of 4096 leaves.
+uint256 constant L2_TO_L1_LOGS_MERKLE_TREE_LEAVES = 4096;
 
 /// @dev The length of the derived key in bytes inside compressed state diffs.
 uint256 constant DERIVED_KEY_LENGTH = 32;
@@ -124,3 +133,11 @@ uint256 constant STATE_DIFF_DERIVED_KEY_OFFSET = 52;
 uint256 constant STATE_DIFF_ENUM_INDEX_OFFSET = 84;
 /// @dev The offset of the final value in a storage diff.
 uint256 constant STATE_DIFF_FINAL_VALUE_OFFSET = 124;
+
+/// @dev Total number of bytes in a blob. Blob = 4096 field elements * 31 bytes per field element
+/// @dev EIP-4844 defines it as 131_072 but we use 4096 * 31 within our circuits to always fit within a field element
+/// @dev Our circuits will prove that a EIP-4844 blob and our internal blob are the same.
+uint256 constant BLOB_SIZE_BYTES = 126_976;
+
+/// @dev Max number of blobs currently supported
+uint256 constant MAX_NUMBER_OF_BLOBS = 2;

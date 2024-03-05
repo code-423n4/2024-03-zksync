@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.20;
 
 import {ISystemContext} from "./interfaces/ISystemContext.sol";
 import {ISystemContract} from "./interfaces/ISystemContract.sol";
@@ -41,7 +41,7 @@ contract SystemContext is ISystemContext, ISystemContextDeprecated, ISystemContr
     address public coinbase = BOOTLOADER_FORMAL_ADDRESS;
 
     /// @notice Formal `block.difficulty` parameter.
-    uint256 public difficulty = 2500000000000000;
+    uint256 public difficulty = 2.5e15;
 
     /// @notice The `block.basefee`.
     /// @dev It is currently a constant.
@@ -52,7 +52,7 @@ contract SystemContext is ISystemContext, ISystemContextDeprecated, ISystemContr
 
     /// @notice The hashes of batches.
     /// @dev It stores batch hashes for all previous batches.
-    mapping(uint256 => bytes32) internal batchHash;
+    mapping(uint256 batchNumber => bytes32 batchHash) internal batchHashes;
 
     /// @notice The number and the timestamp of the current L2 block.
     BlockInfo internal currentL2BlockInfo;
@@ -78,6 +78,12 @@ contract SystemContext is ISystemContext, ISystemContextDeprecated, ISystemContr
 
     /// @notice The information about the virtual blocks upgrade, which tracks when the migration to the L2 blocks has started and finished.
     VirtualBlockUpgradeInfo internal virtualBlockUpgradeInfo;
+
+    /// @notice Set the chainId origin.
+    /// @param _newChainId The chainId
+    function setChainId(uint256 _newChainId) external onlyCallFromForceDeployer {
+        chainId = _newChainId;
+    }
 
     /// @notice Number of current transaction in block.
     uint16 public txNumberInBlock;
@@ -117,7 +123,7 @@ contract SystemContext is ISystemContext, ISystemContextDeprecated, ISystemContr
         } else if (_block < currentVirtualBlockUpgradeInfo.virtualBlockStartBatch) {
             // Note, that we will get into this branch only for a brief moment of time, right after the upgrade
             // for virtual blocks before 256 virtual blocks are produced.
-            hash = batchHash[_block];
+            hash = batchHashes[_block];
         } else if (
             _block >= currentVirtualBlockUpgradeInfo.virtualBlockFinishL2Block &&
             currentVirtualBlockUpgradeInfo.virtualBlockFinishL2Block > 0
@@ -135,7 +141,7 @@ contract SystemContext is ISystemContext, ISystemContextDeprecated, ISystemContr
     /// @param _batchNumber The number of the batch.
     /// @return hash The hash of the batch.
     function getBatchHash(uint256 _batchNumber) external view returns (bytes32 hash) {
-        hash = batchHash[_batchNumber];
+        hash = batchHashes[_batchNumber];
     }
 
     /// @notice Returns the current batch's number and timestamp.
@@ -216,14 +222,14 @@ contract SystemContext is ISystemContext, ISystemContextDeprecated, ISystemContr
         require(_l2BlockNumber > 0, "L2 block number is never expected to be zero");
 
         unchecked {
-            bytes32 correctPrevBlockHash = _calculateLegacyL2BlockHash(uint128(_l2BlockNumber - 1));
+            bytes32 correctPrevBlockHash = _calculateLegacyL2BlockHash(_l2BlockNumber - 1);
             require(correctPrevBlockHash == _expectedPrevL2BlockHash, "The previous L2 block hash is incorrect");
 
             // Whenever we'll be queried about the hashes of the blocks before the upgrade,
             // we'll use batches' hashes, so we don't need to store 256 previous hashes.
             // However, we do need to store the last previous hash in order to be able to correctly calculate the
             // hash of the new L2 block.
-            _setL2BlockHash(uint128(_l2BlockNumber - 1), correctPrevBlockHash);
+            _setL2BlockHash(_l2BlockNumber - 1, correctPrevBlockHash);
         }
     }
 
@@ -382,7 +388,6 @@ contract SystemContext is ISystemContext, ISystemContextDeprecated, ISystemContr
 
         // The structure of the "setNewBatch" implies that currentBatchNumber > 0, but we still double check it
         require(currentBatchNumber > 0, "The current batch number must be greater than 0");
-        bytes32 prevBatchHash = batchHash[currentBatchNumber - 1];
 
         // In order to spend less pubdata, the packed version is published
         uint256 packedTimestamps = (uint256(currentBatchTimestamp) << 128) | currentL2BlockTimestamp;
@@ -425,7 +430,7 @@ contract SystemContext is ISystemContext, ISystemContextDeprecated, ISystemContr
 
         _ensureBatchConsistentWithL2Block(_newTimestamp);
 
-        batchHash[previousBatchNumber] = _prevBatchHash;
+        batchHashes[previousBatchNumber] = _prevBatchHash;
 
         // Setting new block number and timestamp
         BlockInfo memory newBlockInfo = BlockInfo({number: previousBatchNumber + 1, timestamp: _newTimestamp});
@@ -479,6 +484,6 @@ contract SystemContext is ISystemContext, ISystemContextDeprecated, ISystemContr
     /// @notice Returns the hash of the given batch.
     /// @dev Deprecated in favor of getBatchHash.
     function blockHash(uint256 _blockNumber) external view returns (bytes32 hash) {
-        hash = batchHash[_blockNumber];
+        hash = batchHashes[_blockNumber];
     }
 }

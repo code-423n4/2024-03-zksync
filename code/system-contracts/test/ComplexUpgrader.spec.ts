@@ -1,49 +1,39 @@
-import { expect } from 'chai';
-import { ComplexUpgrader, DummyUpgrade } from '../typechain-types';
-import { FORCE_DEPLOYER_ADDRESS } from './shared/constants';
-import { Wallet } from 'zksync-web3';
-import { getWallets, deployContract } from './shared/utils';
-import { network, ethers } from 'hardhat';
+import { expect } from "chai";
+import { ethers, network } from "hardhat";
+import type { ComplexUpgrader, MockContract } from "../typechain";
+import { ComplexUpgraderFactory } from "../typechain";
+import { TEST_COMPLEX_UPGRADER_CONTRACT_ADDRESS, TEST_FORCE_DEPLOYER_ADDRESS } from "./shared/constants";
+import { deployContract, deployContractOnAddress, getWallets } from "./shared/utils";
 
-describe('ComplexUpgrader tests', function () {
-    let wallet: Wallet;
-    let complexUpgrader: ComplexUpgrader;
-    let dummyUpgrade: DummyUpgrade;
+describe("ComplexUpgrader tests", function () {
+  let complexUpgrader: ComplexUpgrader;
+  let dummyUpgrade: MockContract;
 
-    before(async () => {
-        wallet = getWallets()[0];
-        complexUpgrader = (await deployContract('ComplexUpgrader')) as ComplexUpgrader;
-        dummyUpgrade = (await deployContract('DummyUpgrade')) as DummyUpgrade;
+  before(async () => {
+    const wallet = (await getWallets())[0];
+    await deployContractOnAddress(TEST_COMPLEX_UPGRADER_CONTRACT_ADDRESS, "ComplexUpgrader");
+    complexUpgrader = ComplexUpgraderFactory.connect(TEST_COMPLEX_UPGRADER_CONTRACT_ADDRESS, wallet);
+    dummyUpgrade = (await deployContract("MockContract")) as MockContract;
+  });
+
+  describe("upgrade", function () {
+    it("non force deployer failed to call", async () => {
+      await expect(complexUpgrader.upgrade(dummyUpgrade.address, "0xdeadbeef")).to.be.revertedWith(
+        "Can only be called by FORCE_DEPLOYER"
+      );
     });
 
-    describe('upgrade', function () {
-        it('non force deployer failed to call', async () => {
-            await expect(
-                complexUpgrader.upgrade(
-                    dummyUpgrade.address,
-                    dummyUpgrade.interface.encodeFunctionData('performUpgrade')
-                )
-            ).to.be.revertedWith('Can only be called by FORCE_DEPLOYER');
-        });
+    it("successfully upgraded", async () => {
+      const force_deployer = await ethers.getImpersonatedSigner(TEST_FORCE_DEPLOYER_ADDRESS);
 
-        it('successfully upgraded', async () => {
-            await network.provider.request({
-                method: 'hardhat_impersonateAccount',
-                params: [FORCE_DEPLOYER_ADDRESS]
-            });
+      await expect(complexUpgrader.connect(force_deployer).upgrade(dummyUpgrade.address, "0xdeadbeef"))
+        .to.emit(dummyUpgrade.attach(TEST_COMPLEX_UPGRADER_CONTRACT_ADDRESS), "Called")
+        .withArgs(0, "0xdeadbeef");
 
-            const force_deployer = await ethers.getSigner(FORCE_DEPLOYER_ADDRESS);
-
-            await expect(
-                complexUpgrader
-                    .connect(force_deployer)
-                    .upgrade(dummyUpgrade.address, dummyUpgrade.interface.encodeFunctionData('performUpgrade'))
-            ).to.emit(dummyUpgrade.attach(complexUpgrader.address), 'Upgraded');
-
-            await network.provider.request({
-                method: 'hardhat_stopImpersonatingAccount',
-                params: [FORCE_DEPLOYER_ADDRESS]
-            });
-        });
+      await network.provider.request({
+        method: "hardhat_stopImpersonatingAccount",
+        params: [TEST_FORCE_DEPLOYER_ADDRESS],
+      });
     });
+  });
 });

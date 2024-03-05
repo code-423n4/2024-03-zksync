@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity 0.8.20;
 
 import {StdStorage, stdStorage} from "forge-std/Test.sol";
-import {GovernanceTest} from "./_Governance_Shared.t.sol";
 import {Utils} from "../Utils/Utils.sol";
-import {IGovernance} from "../../../../../cache/solpp-generated-contracts/governance/IGovernance.sol";
+
+import {GovernanceTest} from "./_Governance_Shared.t.sol";
+
+import {IGovernance} from "solpp/governance/IGovernance.sol";
 
 contract ExecutingTest is GovernanceTest {
     using stdStorage for StdStorage;
@@ -29,19 +31,19 @@ contract ExecutingTest is GovernanceTest {
     function test_ScheduleShadowAndExecute() public {
         IGovernance.Operation memory op = operationWithOneCallZeroSaltAndPredecessor(address(eventOnFallback), 0, "");
         bytes32 opId = governance.hashOperation(op);
-        vm.prank(owner);
+        vm.startPrank(owner);
         governance.scheduleShadow(opId, 100000);
         vm.warp(block.timestamp + 100000);
-        vm.prank(securityCouncil);
+        vm.startPrank(securityCouncil);
         executeOpAndCheck(op);
     }
 
     function test_ScheduleShadowAndExecuteInstant() public {
         IGovernance.Operation memory op = operationWithOneCallZeroSaltAndPredecessor(address(eventOnFallback), 0, "");
         bytes32 opId = governance.hashOperation(op);
-        vm.prank(owner);
+        vm.startPrank(owner);
         governance.scheduleShadow(opId, 100000);
-        vm.prank(securityCouncil);
+        vm.startPrank(securityCouncil);
         executeInstantOpAndCheck(op);
     }
 

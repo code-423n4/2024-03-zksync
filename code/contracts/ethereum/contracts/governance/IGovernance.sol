@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.13;
+pragma solidity 0.8.20;
 
+/// @title Governance contract interface
+/// @author Matter Labs
+/// @custom:security-contact security@matterlabs.dev
 interface IGovernance {
     /// @dev This enumeration includes the following states:
     /// @param Unset Default state, indicating the operation has not been set.
@@ -51,9 +54,9 @@ interface IGovernance {
 
     function cancel(bytes32 _id) external;
 
-    function execute(Operation calldata _operation) external;
+    function execute(Operation calldata _operation) external payable;
 
-    function executeInstant(Operation calldata _operation) external;
+    function executeInstant(Operation calldata _operation) external payable;
 
     function hashOperation(Operation calldata _operation) external pure returns (bytes32);
 
