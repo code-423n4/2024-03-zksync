@@ -1,34 +1,3 @@
-# Repo setup
-
-## ⭐️ Sponsor: Add code to this repo
-
-- [ ] Create a PR to this repo with the below changes:
-- [ ] Provide a self-contained repository with working commands that will build (at least) all in-scope contracts, and commands that will run tests producing gas reports for the relevant contracts.
-- [ ] Make sure your code is thoroughly commented using the [NatSpec format](https://docs.soliditylang.org/en/v0.5.10/natspec-format.html#natspec-format).
-- [ ] Please have final versions of contracts and documentation added/updated in this repo **no less than 48 business hours prior to audit start time.**
-- [ ] Be prepared for a 🚨code freeze🚨 for the duration of the audit — important because it establishes a level playing field. We want to ensure everyone's looking at the same code, no matter when they look during the audit. (Note: this includes your own repo, since a PR can leak alpha to our wardens!)
-
-
----
-
-## ⭐️ Sponsor: Edit this `README.md` file
-
-- [ ] Modify the contents of this `README.md` file. Describe how your code is supposed to work with links to any relevent documentation and any other criteria/details that the C4 Wardens should keep in mind when reviewing. (Here are two well-constructed examples: [Ajna Protocol](https://github.com/code-423n4/2023-05-ajna) and [Maia DAO Ecosystem](https://github.com/code-423n4/2023-05-maia))
-- [ ] Review the Gas award pool amount. This can be adjusted up or down, based on your preference - just flag it for Code4rena staff so we can update the pool totals across all comms channels.
-- [ ] Optional / nice to have: pre-record a high-level overview of your protocol (not just specific smart contract functions). This saves wardens a lot of time wading through documentation.
-- [ ] [This checklist in Notion](https://code4rena.notion.site/Key-info-for-Code4rena-sponsors-f60764c4c4574bbf8e7a6dbd72cc49b4#0cafa01e6201462e9f78677a39e09746) provides some best practices for Code4rena audits.
-
-## ⭐️ Sponsor: Final touches
-- [ ] Review and confirm the details in the section titled "Scoping details" and alert Code4rena staff of any changes.
-- [ ] Review and confirm the list of in-scope files in the `scope.txt` file in this directory.  Any files not listed as "in scope" will be considered out of scope for the purposes of judging, even if the file will be part of the deployed contracts.
-- [ ] Check that images and other files used in this README have been uploaded to the repo as a file and then linked in the README using absolute path (e.g. `https://github.com/code-423n4/yourrepo-url/filepath.png`)
-- [ ] Ensure that *all* links and image/file paths in this README use absolute paths, not relative paths
-- [ ] Check that all README information is in markdown format (HTML does not render on Code4rena.com)
-- [ ] Remove any part of this template that's not relevant to the final version of the README (e.g. instructions in brackets and italic)
-- [ ] Delete this checklist and all text above the line below when you're ready.
-
----
-
 # zkSync Era audit details
 - Total Prize Pool: $250,000 in USDC 
   - HM awards: $208.526 in USDC 
@@ -47,94 +16,347 @@
 
 ## Automated Findings / Publicly Known Issues
 
-The 4naly3er report can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/4naly3er-report.md).
-
 Automated findings output for the audit can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/bot-report.md) within 24 hours of audit opening.
 
-_Note for C4 wardens: Anything included in this `Automated Findings / Publicly Known Issues` section is considered a publicly known issue and is ineligible for awards._
+*Note for C4 wardens: Anything included in the automated findings output is considered a publicly known issue and is ineligible for awards.*
 
-[ ⭐️ SPONSORS: Are there any known issues or risks deemed acceptable that shouldn't lead to a valid finding? If so, list them here. ]
+### DefaultAccount does not always return successfully
 
+[DefaultAccount](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/DefaultAccount.sol), while it should always behave as an EOA (i.e. any call to it should return `success(0,0)`), if called with a selector of one of its methods and incorrect ABI-encoding of its parameters, will fail with empty error. This happens due to the fact that the ABI decoding fails before the modifier is triggered.
+
+### Known differences from Ethereum
+
+More known differences from Ethereum can be found in our [documentation](https://era.zksync.io/docs/reference/architecture/differences-with-ethereum.html).
 
 # Overview
 
-[ ⭐️ SPONSORS: add info here ]
+# **zkSync Protocol Overview & Documentation**
+
+zkSync Era is a fully-fledged Layer-2 scaling solution that enhances Ethereum's scalability and efficiency. It achieves this through a combination of smart contracts deployed on the Ethereum and the zkEVM, which facilitates EVM-compatible smart contract execution in a more efficient manner.
+
+This repository is dedicated to providing comprehensive documentation and code pertaining exclusively to the Smart Contracts aspect of the zkSync Era Protocol. Below, you will find a high-level overview of the smart contracts section, accompanied by relevant documentation links. We highly encourage auditors to consult these resources for an in-depth understanding of the protocol's smart contracts framework before and during the audit.
+
+As part of this security audit, we are focusing on the changes and updates made to the smart contracts since our last security review with code4rena. Our goal is to ensure the continued security, efficiency, and reliability of the zkSync Era platform as it evolves.
+
+## **📁 Sections**
+
+### **1. Smart Contracts Section**
+
+Relevant Documentation:
+
+- **[L1 smart contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/L1%20smart%20contracts.md)**
+- **[System Contracts/Bootloader Description](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/System%20contracts%20bootloader%20description.md)**
+- **[zkSync Era Fee Model](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md)**
+- **[Handling L1→L2 Ops on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1→L2%20ops%20on%20zkSync.md)**
+- **[Batches & L2 Blocks on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md)**
+- **[Elliptic Curve Precompiles](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Elliptic%20curve%20precompiles.md)**
+- **[Handling Pubdata in Boojum](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md)**
+
+### **2. VM Section**
+
+The VM section is related to the zkSync Era Virtual Machine.
+
+- **[ZkSync Era Virtual Machine Primer](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/ZkSync%20Era%20Virtual%20Machine%20primer.md)**
+    - This primer is designed to provide auditors with a foundational understanding of the zkSync Era Virtual Machine. It offers insights into the operational mechanics and integral components of EraVM, serving as an essential guide for those seeking to explore the zkSync EraVM environment.
+- **[zkSync Era: The Equivalence Compiler Documentation](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/overview.md)**
+    - The document describes how zkSync Solidity compiler represents high-level programming language constructions into low-level EraVM instruction set, how to use unique features without extending Solidity language with new syntax and why system contracts are needed.
+
+## **🚀 Getting Started for Auditors**
+
+- Ensure to go through each section and related documents thoroughly.
+- Keep in mind the overall working of the zkSync protocol while reviewing individual components.
+- Review the code and documentation with a focus on security, correctness, and optimization, particularly concerning gas consumption.
+
+## **📢 Communication**
+
+For any clarifications, doubts, or discussion, please contact Code4rena staff, and we will address your concerns promptly.
 
 ## Links
 
-- **Previous audits:** 
-- **Documentation:**
-- **Website:**
-- **Twitter:** 
-- **Discord:** 
-
+- **Documentation:** https://era.zksync.io/docs/
+- **Website:** https://zksync.io/
+- **Twitter:** https://twitter.com/zksync
+- **Discord:** https://join.zksync.dev/
+- **Previous Audits:** https://era.zksync.io/docs/reference/troubleshooting/audit-bug-bounty.html
 
 # Scope
 
-[ ⭐️ SPONSORS: add scoping and technical details here ]
+## L1 contracts
 
-- [ ] In the table format shown below, provide the name of each contract and:
-  - [ ] source lines of code (excluding blank lines and comments) in each *For line of code counts, we recommend running prettier with a 100-character line length, and using [cloc](https://github.com/AlDanial/cloc).* 
-  - [ ] external contracts called in each
-  - [ ] libraries used in each
+### Bridges
 
-*List all files in scope in the table below (along with hyperlinks) -- and feel free to add notes here to emphasize areas of focus.*
+| Contract | SLOC | Libraries used |
+| --- | --- | --- |
+| [contracts/ethereum/contracts/bridge/L1ERC20Bridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/bridge/L1ERC20Bridge.sol) | 119 | @openzeppelin |
+| [contracts/ethereum/contracts/bridge/L1SharedBridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/bridge/L1SharedBridge.sol) | 442 | @openzeppelin |
+| [contracts/ethereum/contracts/bridgehub/Bridgehub.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/bridgehub/Bridgehub.sol) | 234 | @openzeppelin |
 
-| Contract | SLOC | Purpose | Libraries used |  
-| ----------- | ----------- | ----------- | ----------- |
-| [contracts/folder/sample.sol](https://github.com/code-423n4/repo-name/blob/contracts/folder/sample.sol) | 123 | This contract does XYZ | [`@openzeppelin/*`](https://openzeppelin.com/contracts/) |
+### Governance
+
+| Contract | SLOC | Libraries used |
+| --- | --- | --- |
+| [contracts/ethereum/contracts/governance/Governance.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/governance/Governance.sol) | 133 | @openzeppelin |
+
+### State transition (zkSync)
+
+| Contract | SLOC | Libraries used |
+| --- | --- | --- |
+| [contracts/ethereum/contracts/state-transition/StateTransitionManager.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/StateTransitionManager.sol) | 163 | @openzeppelin |
+| [contracts/ethereum/contracts/state-transition/ValidatorTimelock.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/ValidatorTimelock.sol) | 142 | @openzeppelin |
+| [contracts/ethereum/contracts/state-transition/chain-deps/DiamondInit.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-deps/DiamondInit.sol) | 35 |  |
+| [contracts/ethereum/contracts/state-transition/chain-deps/DiamondProxy.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-deps/DiamondProxy.sol) | 30 |  |
+| [contracts/ethereum/contracts/state-transition/chain-deps/ZkSyncStateTransitionStorage.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-deps/ZkSyncStateTransitionStorage.sol) | 66 |  |
+| [contracts/ethereum/contracts/state-transition/chain-deps/facets/Admin.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-deps/facets/Admin.sol) | 92 |  |
+| [contracts/ethereum/contracts/state-transition/chain-deps/facets/Executor.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-deps/facets/Executor.sol) | 436 |  |
+| [contracts/ethereum/contracts/state-transition/chain-deps/facets/Getters.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-deps/facets/Getters.sol) | 155 |  |
+| [contracts/ethereum/contracts/state-transition/chain-deps/facets/Mailbox.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-deps/facets/Mailbox.sol) | 277 | @openzeppelin |
+| [contracts/ethereum/contracts/state-transition/chain-deps/facets/ZkSyncStateTransitionBase.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-deps/facets/ZkSyncStateTransitionBase.sol) | 40 |  |
+
+### Upgrades
+
+| Contract | SLOC | Libraries used |  
+| ----------- | ----------- | ----------- |
+| [contracts/ethereum/contracts/upgrades/BaseZkSyncUpgrade.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/upgrades/BaseZkSyncUpgrade.sol) | 145 |  |
+| [contracts/ethereum/contracts/upgrades/BaseZkSyncUpgradeGenesis.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/upgrades/BaseZkSyncUpgradeGenesis.sol) | 43 |  |
+| [contracts/ethereum/contracts/upgrades/DefaultUpgrade.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/upgrades/DefaultUpgrade.sol) | 9 |  |
+| [contracts/ethereum/contracts/upgrades/GenesisUpgrade.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/upgrades/GenesisUpgrade.sol) | 10 |  |
+
+### Libraries
+
+| Contract | SLOC | Libraries used |
+| --- | --- | --- |
+| [contracts/ethereum/contracts/common/libraries/L2ContractHelper.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/common/libraries/L2ContractHelper.sol) | 38 |  |
+| [contracts/ethereum/contracts/common/libraries/UncheckedMath.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/common/libraries/UncheckedMath.sol) | 18 |  |
+| [contracts/ethereum/contracts/common/libraries/UnsafeBytes.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/common/libraries/UnsafeBytes.sol) | 40 |  |
+| [contracts/ethereum/contracts/state-transition/libraries/Diamond.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/libraries/Diamond.sol) | 174 | @openzeppelin |
+| [contracts/ethereum/contracts/state-transition/libraries/LibMap.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/libraries/LibMap.sol) | 23 |  |
+| [contracts/ethereum/contracts/state-transition/libraries/Merkle.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/libraries/Merkle.sol) | 30 |  |
+| [contracts/ethereum/contracts/state-transition/libraries/PriorityQueue.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/libraries/PriorityQueue.sol) | 42 |  |
+| [contracts/ethereum/contracts/state-transition/libraries/TransactionValidator.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/libraries/TransactionValidator.sol) | 75 | @openzeppelin |
+
+### Interfaces
+
+| Contract | SLOC | Libraries used |
+| --- | --- | --- |
+| [contracts/ethereum/contracts/bridge/interfaces/IL1ERC20Bridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/bridge/interfaces/IL1ERC20Bridge.sol) | 55 |  |
+| [contracts/ethereum/contracts/bridge/interfaces/IL1SharedBridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/bridge/interfaces/IL1SharedBridge.sol) | 113 |  |
+| [contracts/ethereum/contracts/bridge/interfaces/IL2Bridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/bridge/interfaces/IL2Bridge.sol) | 14 |  |
+| [contracts/ethereum/contracts/bridge/interfaces/IWETH9.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/bridge/interfaces/IWETH9.sol) | 5 |  |
+| [contracts/ethereum/contracts/bridgehub/IBridgehub.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/bridgehub/IBridgehub.sol) | 90 |  |
+| [contracts/ethereum/contracts/common/interfaces/IL2ContractDeployer.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/common/interfaces/IL2ContractDeployer.sol) | 16 |  |
+| [contracts/ethereum/contracts/governance/IGovernance.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/governance/IGovernance.sol) | 38 |  |
+| [contracts/ethereum/contracts/state-transition/IStateTransitionManager.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/IStateTransitionManager.sol) | 46 |  |
+| [contracts/ethereum/contracts/state-transition/chain-interfaces/IAdmin.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-interfaces/IAdmin.sol) | 32 |  |
+| [contracts/ethereum/contracts/state-transition/chain-interfaces/IDiamondInit.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-interfaces/IDiamondInit.sol) | 34 |  |
+| [contracts/ethereum/contracts/state-transition/chain-interfaces/IExecutor.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-interfaces/IExecutor.sol) | 93 |  |
+| [contracts/ethereum/contracts/state-transition/chain-interfaces/IGetters.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-interfaces/IGetters.sol) | 48 |  |
+| [contracts/ethereum/contracts/state-transition/chain-interfaces/ILegacyGetters.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-interfaces/ILegacyGetters.sol) | 9 |  |
+| [contracts/ethereum/contracts/state-transition/chain-interfaces/IMailbox.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-interfaces/IMailbox.sol) | 58 |  |
+| [contracts/ethereum/contracts/state-transition/chain-interfaces/IVerifier.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-interfaces/IVerifier.sol) | 14 |  |
+| [contracts/ethereum/contracts/state-transition/chain-interfaces/IZkSyncStateTransition.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-interfaces/IZkSyncStateTransition.sol) | 15 |  |
+| [contracts/ethereum/contracts/state-transition/chain-interfaces/IZkSyncStateTransitionBase.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/chain-interfaces/IZkSyncStateTransitionBase.sol) | 4 |  |
+| [contracts/ethereum/contracts/state-transition/l2-deps/ISystemContext.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/l2-deps/ISystemContext.sol) | 4 |  |
+| [contracts/ethereum/contracts/upgrades/IDefaultUpgrade.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/upgrades/IDefaultUpgrade.sol) | 5 |  |
+
+### Others
+
+| Contract | SLOC | Libraries used |
+| --- | --- | --- |
+| [contracts/ethereum/contracts/common/Config.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/common/Config.sol) | 33 |  |
+| [contracts/ethereum/contracts/common/L2ContractAddresses.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/common/L2ContractAddresses.sol) | 9 |  |
+| [contracts/ethereum/contracts/common/Messaging.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/common/Messaging.sol) | 59 |  |
+| [contracts/ethereum/contracts/common/ReentrancyGuard.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/common/ReentrancyGuard.sol) | 59 |  |
+| [contracts/ethereum/contracts/vendor/AddressAliasHelper.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/vendor/AddressAliasHelper.sol) | 29 |  |
+| [contracts/ethereum/contracts/state-transition/utils/BlobVersionedHashRetriever.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/utils/BlobVersionedHashRetriever.yul) | 21 |  |
+
+## L2 contracts
+
+### Bootloader
+
+| Contract | SLOC | Libraries used |  
+| ----------- | ----------- | ----------- |
+| [system-contracts/bootloader/bootloader.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/bootloader/bootloader.yul) | 2314 |  |
+
+### System Contracts
+
+| Contract | SLOC | Libraries used |
+| ----------- | ----------- | ----------- |
+| [system-contracts/contracts/AccountCodeStorage.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/AccountCodeStorage.sol) | 75 |  |
+| [system-contracts/contracts/BootloaderUtilities.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/BootloaderUtilities.sol) | 239 |  |
+| [system-contracts/contracts/ComplexUpgrader.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/ComplexUpgrader.sol) | 21 |  |
+| [system-contracts/contracts/Compressor.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/Compressor.sol) | 147 |  |
+| [system-contracts/contracts/Constants.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/Constants.sol) | 73 |  |
+| [system-contracts/contracts/ContractDeployer.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/ContractDeployer.sol) | 226 |  |
+| [system-contracts/contracts/DefaultAccount.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/DefaultAccount.sol) | 133 |  |
+| [system-contracts/contracts/EmptyContract.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/EmptyContract.sol) | 11 |  |
+| [system-contracts/contracts/EventWriter.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/EventWriter.yul) | 105 |  |
+| [system-contracts/contracts/ImmutableSimulator.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/ImmutableSimulator.sol) | 30 |  |
+| [system-contracts/contracts/KnownCodesStorage.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/KnownCodesStorage.sol) | 52 |  |
+| [system-contracts/contracts/L1Messenger.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/L1Messenger.sol) | 225 |  |
+| [system-contracts/contracts/L2BaseToken.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/L2BaseToken.sol) | 79 |  |
+| [system-contracts/contracts/MsgValueSimulator.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/MsgValueSimulator.sol) | 39 |  |
+| [system-contracts/contracts/NonceHolder.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/NonceHolder.sol) | 102 |  |
+| [system-contracts/contracts/PubdataChunkPublisher.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/PubdataChunkPublisher.sol) | 37 |  |
+| [system-contracts/contracts/SystemContext.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/SystemContext.sol) | 242 |  |
+
+### Precompiles
+
+| Contract | SLOC | Libraries used |
+| ----------- | ----------- | ----------- |
+| [system-contracts/contracts/precompiles/EcAdd.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/precompiles/EcAdd.yul) | 234 |  |
+| [system-contracts/contracts/precompiles/EcMul.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/precompiles/EcMul.yul) | 270 |  |
+| [system-contracts/contracts/precompiles/Ecrecover.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/precompiles/Ecrecover.yul) | 68 |  |
+| [system-contracts/contracts/precompiles/Keccak256.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/precompiles/Keccak256.yul) | 67 |  |
+| [system-contracts/contracts/precompiles/SHA256.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/precompiles/SHA256.yul) | 65 |  |
+
+### Libraries
+
+| Contract | SLOC | Libraries used |
+| ----------- | ----------- | ----------- |
+| [system-contracts/contracts/libraries/EfficientCall.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/libraries/EfficientCall.sol) | 174 |  |
+| [system-contracts/contracts/libraries/RLPEncoder.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/libraries/RLPEncoder.sol) | 80 |  |
+| [system-contracts/contracts/libraries/SystemContractHelper.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/libraries/SystemContractHelper.sol) | 184 |  |
+| [system-contracts/contracts/libraries/SystemContractsCaller.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/libraries/SystemContractsCaller.sol) | 150 |  |
+| [system-contracts/contracts/libraries/TransactionHelper.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/libraries/TransactionHelper.sol) | 263 | @openzeppelin |
+| [system-contracts/contracts/libraries/UnsafeBytesCalldata.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/libraries/UnsafeBytesCalldata.sol) | 44 |  |
+| [system-contracts/contracts/libraries/Utils.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/libraries/Utils.sol) | 56 |  |
+
+### System contract Interfaces
+
+| Contract | SLOC | Libraries used |
+| ----------- | ----------- | ----------- |
+| [system-contracts/contracts/interfaces/IAccount.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IAccount.sol) | 26 |  |
+| [system-contracts/contracts/interfaces/IAccountCodeStorage.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IAccountCodeStorage.sol) | 9 |  |
+| [system-contracts/contracts/interfaces/IBaseToken.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IBaseToken.sol) | 21 |  |
+| [system-contracts/contracts/interfaces/IBootloaderUtilities.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IBootloaderUtilities.sol) | 7 |  |
+| [system-contracts/contracts/interfaces/IComplexUpgrader.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IComplexUpgrader.sol) | 9 |  |
+| [system-contracts/contracts/interfaces/ICompressor.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/ICompressor.sol) | 22 |  |
+| [system-contracts/contracts/interfaces/IContractDeployer.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IContractDeployer.sol) | 54 |  |
+| [system-contracts/contracts/interfaces/IImmutableSimulator.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IImmutableSimulator.sol) | 9 |  |
+| [system-contracts/contracts/interfaces/IKnownCodesStorage.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IKnownCodesStorage.sol) | 13 |  |
+| [system-contracts/contracts/interfaces/IL1Messenger.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IL1Messenger.sol) | 25 |  |
+| [system-contracts/contracts/interfaces/IL2StandardToken.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IL2StandardToken.sol) | 9 |  |
+| [system-contracts/contracts/interfaces/IMailbox.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IMailbox.sol) | 10 |  |
+| [system-contracts/contracts/interfaces/INonceHolder.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/INonceHolder.sol) | 22 |  |
+| [system-contracts/contracts/interfaces/IPaymaster.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IPaymaster.sol) | 22 |  |
+| [system-contracts/contracts/interfaces/IPaymasterFlow.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IPaymasterFlow.sol) | 12 |  |
+| [system-contracts/contracts/interfaces/IPubdataChunkPublisher.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/IPubdataChunkPublisher.sol) | 9 |  |
+| [system-contracts/contracts/interfaces/ISystemContext.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/ISystemContext.sol) | 31 |  |
+| [system-contracts/contracts/interfaces/ISystemContextDeprecated.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/ISystemContextDeprecated.sol) | 11 |  |
+| [system-contracts/contracts/interfaces/ISystemContract.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/system-contracts/contracts/interfaces/ISystemContract.sol) | 40 |  |
+
+### Bridges
+
+| Contract | SLOC | Libraries used |  
+| ----------- | ----------- | ----------- |
+| [contracts/zksync/contracts/bridge/L2SharedBridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/bridge/L2SharedBridge.sol) | 103 | @openzeppelin |
+| [contracts/zksync/contracts/bridge/L2StandardERC20.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/bridge/L2StandardERC20.sol) | 97 | @openzeppelin |
+| [contracts/zksync/contracts/bridge/L2WrappedBaseToken.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/bridge/L2WrappedBaseToken.sol) | 55 | @openzeppelin |
+
+
+### Bridge interfaces
+
+| Contract | SLOC | Libraries used |  
+| ----------- | ----------- | ----------- |
+| [contracts/zksync/contracts/bridge/interfaces/IL1ERC20Bridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/bridge/interfaces/IL1ERC20Bridge.sol) | 10 |  |
+| [contracts/zksync/contracts/bridge/interfaces/IL1SharedBridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/bridge/interfaces/IL1SharedBridge.sol) | 11 |  |
+| [contracts/zksync/contracts/bridge/interfaces/IL2SharedBridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/bridge/interfaces/IL2SharedBridge.sol) | 27 |  |
+| [contracts/zksync/contracts/bridge/interfaces/IL2StandardToken.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/bridge/interfaces/IL2StandardToken.sol) | 10 |  |
+| [contracts/zksync/contracts/bridge/interfaces/IL2WrappedBaseToken.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/bridge/interfaces/IL2WrappedBaseToken.sol) | 8 |  |
+| [contracts/zksync/contracts/interfaces/IPaymaster.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/interfaces/IPaymaster.sol) | 22 |  |
+| [contracts/zksync/contracts/interfaces/IPaymasterFlow.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/interfaces/IPaymasterFlow.sol) | 13 |  |
+
+### Other
+
+| Contract | SLOC | Libraries used |
+| ----------- | ----------- | ----------- |
+| [contracts/zksync/contracts/vendor/AddressAliasHelper.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/vendor/AddressAliasHelper.sol) | 29 |  |
+| [contracts/zksync/contracts/ForceDeployUpgrader.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/ForceDeployUpgrader.sol) | 7 |  |
+| [contracts/zksync/contracts/L2ContractHelper.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/L2ContractHelper.sol) | 88 |  |
+| [contracts/zksync/contracts/SystemContractsCaller.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/SystemContractsCaller.sol) | 103 |  |
+
 
 ## Out of scope
 
-*List any files/contracts that are out of scope for this audit.*
+| Contract | SLOC | Libraries used |  
+| ----------- | ----------- | ----------- |
+|  | | |
+| [contracts/ethereum/contracts/state-transition/Verifier.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/state-transition/Verifier.sol) | 1161 |  |
+| [contracts/ethereum/contracts/upgrades/Upgrade_4844.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/upgrades/Upgrade_4844.sol) | 11 |  |
+| [contracts/ethereum/contracts/upgrades/Upgrade_v1_4_1.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/upgrades/Upgrade_v1_4_1.sol) | 27 |  |
+| [contracts/ethereum/contracts/common/Dependencies.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/ethereum/contracts/common/Dependencies.sol) | 3 | @openzeppelin |
+| [contracts/zksync/contracts/Dependencies.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/Dependencies.sol) | 3 | @openzeppelin |
+| [contracts/zksync/contracts/Config.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/Config.sol) | 3 |  |
+| [contracts/zksync/contracts/TestnetPaymaster.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/zksync/contracts/TestnetPaymaster.sol) | 51 | @openzeppelin |
 
-# Additional Context
-
-- [ ] Describe any novel or unique curve logic or mathematical models implemented in the contracts
-- [ ] Please list specific ERC20 that your protocol is anticipated to interact with. Could be "any" (literally anything, fee on transfer tokens, ERC777 tokens and so forth) or a list of tokens you envision using on launch.
-- [ ] Please list specific ERC721 that your protocol is anticipated to interact with.
-- [ ] Which blockchains will this code be deployed to, and are considered in scope for this audit?
-- [ ] Please list all trusted roles (e.g. operators, slashers, pausers, etc.), the privileges they hold, and any conditions under which privilege escalation is expected/allowable
-- [ ] In the event of a DOS, could you outline a minimum duration after which you would consider a finding to be valid? This question is asked in the context of most systems' capacity to handle DoS attacks gracefully for a certain period.
-- [ ] Is any part of your implementation intended to conform to any EIP's? If yes, please list the contracts in this format: 
-  - `Contract1`: Should comply with `ERC/EIPX`
-  - `Contract2`: Should comply with `ERC/EIPY`
 
 ## Attack ideas (Where to look for bugs)
-*List specific areas to address - see [this blog post](https://medium.com/code4rena/the-security-council-elections-within-the-arbitrum-dao-a-comprehensive-guide-aa6d001aae60#9adb) for an example*
 
-## Main invariants
-*Describe the project's main invariants (properties that should NEVER EVER be broken).*
+### Access control and permissions
+
+It is important to examine access control and permissions for any contract that contains potentially dangerous logic (including upgrades). While the assumption is that either governance or security council are not malicious, neither governance, nor the security council should be able to circumvent the limitations imposed on them.
+
+Special scrutiny should be paid to the powers of the operator. While currently the operator is controlled by Matter Labs and is also partially trusted (for instance, it is responsible for supplying the correct L1 gas price), it should never be able to directly steal users' funds or conduct malicious upgrades. An [example](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md) of such an issue, which was detected and resolved by the team before the contest. 
+
+### Data availability issues
+
+Another important invariant is that the state of the rollup can be restored based on the pubdata sent to L1. Make sure that for a block that gets executed regardless of what a potentially malicious operator does:
+
+- Users can always get preimages for all the bytecodes that were deployed to the system.
+- Users can always recover the leaves of the Merkle tree of L2->L1 logs.
+- Users can always recover the storage merkle tree.
+
+In general, there should be always a possibility to have a new operator that fully recovers the state available solely from L1 and is able to execute transactions successfully.
+
+### EVM compatibility attacks
+
+Make sure that access to any dangerous logic is well-constrained. For instance:
+
+- Access to potentially dangerous system contracts' methods is protected by the `isSystemCall` flag, permitting only the contracts that are aware of the zkSync-specific features to call it.
+- Using innocent Solidity code without zkSync-specific features should not lead to unexpected behaviour. An [example](https://code4rena.com/reports/2023-03-zksync#h-01-the-call-to-msgvaluesimulator-with-non-zero-msgvalue-will-call-to-sender-itself-which-will-bypass-the-onlyself-check) of a relevant finding.
 
 ## Scoping Details 
-[ ⭐️ SPONSORS: please confirm/edit the information below. ]
 
 ```
-- If you have a public code repo, please share it here: https://github.com/matter-labs/era-contracts/tree/kl-factory 
-- How many contracts are in scope?: 118
-- Total SLoC for these contracts?: 13763  
-- How many external imports are there?: 1 
-- How many separate interfaces and struct definitions are there for the contracts within scope?: 40 
-- Does most of your code generally use composition or inheritance?: Composition
-- How many external calls?: 0 
-- What is the overall line coverage percentage provided by your tests?: 70%
-- Is this an upgrade of an existing system?: True - EIP-4844, RIP-7212(https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md), .transfer/.send support and Shared bridge
-- Check all that apply (e.g. timelock, NFT, AMM, ERC20, rollups, etc.): Uses L2, Timelock function, Multi-Chain, ERC-20 Token 
-- Is there a need to understand a separate part of the codebase / get context in order to audit this part of the protocol?: True 
-- Please describe required context:   
+- If you have a public code repo, please share it here:  https://github.com/matter-labs/era-contracts
+- How many contracts are in scope?:   39
+- Total SLoC for these contracts?:  6011
+- How many external imports are there?:  13
+- How many separate interfaces and struct definitions are there for the contracts within scope?:  94
+- Does most of your code generally use composition or inheritance?:   inheritance
+- Is this an upgrade of an existing system?: Yes
+- Check all that apply (e.g. timelock, NFT, AMM, ERC20, rollups, etc.): timelock, ERC20, rollups
+- Is there a need to understand a separate part of the codebase / get context in order to audit this part of the protocol?:   No
+- Please describe required context:   ZK rollup
 - Does it use an oracle?:  No
-- Describe any novel or unique curve logic or mathematical models your code uses: 
+- Describe any novel or unique curve logic or mathematical models your code uses: No
 - Is this either a fork of or an alternate implementation of another project?: No
-- Does it use a side-chain?:
-- Describe any specific areas you would like addressed:
+- Does it use a side-chain?: No
+- Describe any specific areas you would like addressed: Logical errors, malicious input for bootloader, EVM compatibility issues
 ```
 
 # Tests
 
-*Provide every step required to build the project from a fresh git clone, as well as steps to run the tests with a gas report.* 
+## (Foundry) L1 contracts one liner
 
-*Note: Many wardens run Slither as a first pass for testing.  Please document any known errors with no workaround.* 
+```
+rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03-zksync.git && cd 2024-03-zksync/code/contracts/ethereum && yarn --ignore-engines && yarn test:foundry
+```
 
-## Miscellaneous
+## (Hardhat) L1 contracts one liner
 
-Employees of zkSync and employees' family members are ineligible to participate in this audit.
+```
+rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03-zksync.git && cd 2024-03-zksync/code/contracts/ethereum && yarn --ignore-engines && yarn test
+```
+
+## (Hardhat) L2 System contracts one liner
+
+```
+rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03-zksync.git && cd 2024-03-zksync/code/system-contracts/scripts && yarn --ignore-engines && bash quick-setup.sh
+```
+
+## (Hardhat) L2 contracts one liner
+
+```
+rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03-zksync.git && cd 2024-03-zksync/code/contracts/zksync/scripts && yarn --ignore-engines && bash quick-setup.sh
+```
