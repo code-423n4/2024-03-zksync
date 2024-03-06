@@ -47,7 +47,7 @@ Control over the AdminFacet is divided between two main entities:
 
 ### MailboxFacet
 
-> This contract significantly changed from the time of the previous code4rena competition. The major difference is that chains can have non-ether base tokens (L2 can support ether or ERC20 as a fee token) and that L1 -> L2 transaction requests are handled by `BridgeHub` contract.
+> **_NOTE:_**: This contract significantly changed from the time of the previous code4rena competition. The major difference is that chains can have non-ether base tokens (L2 can support ether or ERC20 as a fee token) and that L1 -> L2 transaction requests are handled by `BridgeHub` contract.
 
 The facet that handles L2 <-> L1 communication, an overview for which can be found in
 [docs](https://era.zksync.io/docs/dev/developer-guides/bridging/l1-l2-interop.html).
@@ -121,13 +121,15 @@ enum SystemLogKey {
     PREV_BATCH_HASH_KEY,
     CHAINED_PRIORITY_TXN_HASH_KEY,
     NUMBER_OF_LAYER_1_TXS_KEY,
+    BLOB_ONE_HASH_KEY,
+    BLOB_TWO_HASH_KEY,
     EXPECTED_SYSTEM_CONTRACT_UPGRADE_TX_HASH_KEY
 }
 ```
 
 When a batch is committed, we process L2 -> L1 system logs. Here are the invariants that are expected there:
 
-- In a given batch there will be either 7 or 8 system logs. The 8th log is only required for a protocol upgrade.
+- In a given batch there will be either 9 or 10 system logs. The 10th log is only required for a protocol upgrade.
 - There will be a single log for each key that is contained within `SystemLogKey`
 - Three logs from the `L2_TO_L1_MESSENGER` with keys:
  - `L2_TO_L1_LOGS_TREE_ROOT_KEY`
@@ -136,6 +138,9 @@ When a batch is committed, we process L2 -> L1 system logs. Here are the invaria
 - Two logs from `L2_SYSTEM_CONTEXT_SYSTEM_CONTRACT_ADDR` with keys:
   - `PACKED_BATCH_AND_L2_BLOCK_TIMESTAMP_KEY`
   - `PREV_BATCH_HASH_KEY`
+- Two logs from `L2_PUBDATA_CHUNK_PUBLISHER_ADDR` with keys:
+  - `BLOB_ONE_HASH_KEY`
+  - `BLOB_TWO_HASH_KEY`
 - Two or three logs from `L2_BOOTLOADER_ADDRESS` with keys:
   - `CHAINED_PRIORITY_TXN_HASH_KEY`
   - `NUMBER_OF_LAYER_1_TXS_KEY`
