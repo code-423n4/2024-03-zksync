@@ -55,7 +55,7 @@ Notice that register `r0` is used to feed constant zero values to instructions; 
 
 Commonly, instructions accept two inputs and one output operands, following the schema:
 
-![arithmetic opcode.png](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/zkSync%20Era%20VM%20primer/arithmetic_opcode.png)
+![arithmetic opcode.png](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/VM%20Section/zkSync%20Era%20VM%20primer/arithmetic_opcode.png)
 
 The first operand can be taken from:
 
@@ -110,7 +110,7 @@ The instruction `sub` is implemented so that it sets `EQ` if the result is zero 
 sub! r1, r2, r3 ; r3 <- (r1 - r2); EQ = 1
 ```
 
-You can learn more in the [formal specification](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/EraVM%20Formal%20specification.pdf).
+You can learn more in the [formal specification](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/VM%20Section/EraVM%20Formal%20specification.pdf).
 
 ### Predicates
 
@@ -143,7 +143,7 @@ Here is a full list of available predicates:
 - `if_not_eq`
 - `if_gt_or_eq`
 
-You can learn more in the [formal specification](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/EraVM%20Formal%20specification.pdf).
+You can learn more in the [formal specification](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/VM%20Section/EraVM%20Formal%20specification.pdf).
 
 ### Swap
 
@@ -463,7 +463,7 @@ System contracts implement contract deployment, extensions such as keccak256, de
 
 Decommitter is a module external to EraVM allowing accessing deployed code by its hash. 
 
-![arch-overview.png](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/zkSync%20Era%20VM%20primer/arch-overview.png)
+![arch-overview.png](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/VM%20Section/zkSync%20Era%20VM%20primer/arch-overview.png)
 
 The system contracts at the address $2^{15}+2$  , called Deployer, keeps hashes of code of each contract in its storage. Far calls to a contract with address $C$ perform as follows:
 
