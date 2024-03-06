@@ -51,6 +51,7 @@ Relevant Documentation:
 - **[Batches & L2 Blocks on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/code/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md)**
 - **[Elliptic Curve Precompiles](https://github.com/code-423n4/2024-03-zksync/blob/main/code/docs/Smart%20contract%20Section/Elliptic%20curve%20precompiles.md)**
 - **[Handling Pubdata in Boojum](https://github.com/code-423n4/2024-03-zksync/blob/main/code/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md)**
+- **[Handling Pubdata in Boojum](https://github.com/code-423n4/2024-03-zksync/blob/main/code/docs/Smart%20contract%20Section/Pubdata%20Post%204844%20.md)**
 
 ### **2. VM Section**
 
