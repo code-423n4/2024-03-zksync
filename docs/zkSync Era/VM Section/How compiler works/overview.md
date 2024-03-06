@@ -30,10 +30,10 @@
 
 ## Concepts
 
-- [Code Separation](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/code_separation.md)
-- [System Contracts](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md)
-- [Exception Handling](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/exception_handling.md)
-- [EVMLA translator](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/evmla_translator.md)
+- [Code Separation](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/VM%20Section/How%20compiler%20works/code_separation.md)
+- [System Contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/VM%20Section/How%20compiler%20works/system_contracts.md)
+- [Exception Handling](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/VM%20Section/How%20compiler%20works/exception_handling.md)
+- [EVMLA translator](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/VM%20Section/How%20compiler%20works/evmla_translator.md)
 
 
 
@@ -141,4 +141,4 @@ At the moment it does not explain much of the LLVM IR and assembly aspects, but 
 | pc | PC | unsupported | - | - | Compile time error |
 | selfdestruct | SELFDESTRUCT | unsupported | - | - | Compile time error |
 
-For more information on how zkSync Era achieves EVM-equivalence, see the [Instructions](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions) section.
+For more information on how zkSync Era achieves EVM-equivalence, see the [Instructions](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/VM%20Section/How%20compiler%20works/instructions) section.

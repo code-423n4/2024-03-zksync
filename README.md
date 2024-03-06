@@ -24,6 +24,19 @@ Automated findings output for the audit can be found [here](https://github.com/c
 
 [DefaultAccount](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/DefaultAccount.sol), while it should always behave as an EOA (i.e. any call to it should return `success(0,0)`), if called with a selector of one of its methods and incorrect ABI-encoding of its parameters, will fail with empty error. This happens due to the fact that the ABI decoding fails before the modifier is triggered.
 
+### extcodehash does not distinguish empty contracts on account balances
+
+According to the [EIP-161](https://eips.ethereum.org/EIPS/eip-161), an account is “empty” when it meets the following conditions: it has no deployed code, its nonce value is zero, and it holds a balance of zero. According to [EIP-1052](https://eips.ethereum.org/EIPS/eip-1052), the extcodehash of an empty account should evaluate to `bytes32(0)`, otherwice it is `keccak256(deployedBytecode)`. On zkSync, `bytes32(0)` is returned in case there is no deployed code and nonce is zero regardless of the account balance.
+
+### Validator can provide innefient bytecode compression
+
+In the current implementation, the mechanism for bytecode compression is not strictly unambiguous. That means the validator has the flexibility to choose a less efficient compression for the bytecode to increase the deployment cost for the end user. Besides that, there is another non-fixed [issue](https://github.com/code-423n4/2023-10-zksync-findings/issues/805), that gives a way for the operator to forces the user to pay more for the bytecode compression or even burn all the transaction gas during bytecode compression verification.
+
+### Aknowledged issues from the previous audits
+
+All unfixed issues from the previous audits are considered out of scope.
+- https://era.zksync.io/docs/reference/troubleshooting/audit-bug-bounty.html
+
 ### Known differences from Ethereum
 
 More known differences from Ethereum can be found in our [documentation](https://era.zksync.io/docs/reference/architecture/differences-with-ethereum.html).
@@ -44,6 +57,7 @@ As part of this security audit, we are focusing on the changes and updates made 
 
 Relevant Documentation:
 
+- **[Protocol overview](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Overview.md)**
 - **[L1 smart contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/L1%20smart%20contracts.md)**
 - **[System Contracts/Bootloader Description](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/System%20contracts%20bootloader%20description.md)**
 - **[zkSync Era Fee Model](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/zkSync%20fee%20model.md)**

@@ -19,7 +19,7 @@ In the case of zkSync Era, ecAdd and ecMul precompiles are written as a smart co
 
 ## Field Arithmetic
 
-The BN254 (also known as alt-BN128) is an elliptic curve defined by the equation $y^2 = x^3 + 3$ over the finite field $\mathbb{F}_p$, being $p = 218882428718392752222464057452572750886963111572978236626890378946452262$08583. The modulus is less than 256 bits, which is why every element in the field is represented as a `uint256`.
+The BN254 (also known as alt-BN128) is an elliptic curve defined by the equation $y^2 = x^3 + 3$ over the finite field $\mathbb{F}_p$, being $p = 21888242871839275222246405745257275088696311157297823662689037894645226208583. The modulus is less than 256 bits, which is why every element in the field is represented as a `uint256`.
 
 The arithmetic is carried out with the field elements encoded in the Montgomery form. This is done not only because operating in the Montgomery form speeds up the computation but also because the native modular multiplication, which is carried out by Yul's `mulmod` opcode, is very inefficient.
 
@@ -103,7 +103,7 @@ function montgomeryAdd(augend, addend) -> ret {
 /// @dev See <https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_The_REDC_algorithm> for further details on the Montgomery multiplication.
 /// @param minuend The minuend in Montgomery form.
 /// @param subtrahend The subtrahend in Montgomery form.
-/// @return ret The result of the Montgomery addition.
+/// @return ret The result of the Montgomery subtraction.
 function montgomerySub(minuend, subtrahend) -> ret {
     ret := montgomeryAdd(minuend, sub(P(), subtrahend))
 }
