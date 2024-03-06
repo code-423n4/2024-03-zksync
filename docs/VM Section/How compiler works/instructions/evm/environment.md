@@ -1,20 +1,18 @@
 # [ADDRESS](https://www.evm.codes/#30?fork=shanghai)
 
-This value is fetched with a native EraVM instruction.
+This value is fetched with a native [EraVM instruction: `context.this`](https://matter-labs.github.io/eravm-spec/spec.html#ContextDefinitions).
 
 ### LLVM IR
 
 [The LLVM IR generator code](https://github.com/matter-labs/era-compiler-solidity/blob/main/src/yul/parser/statement/expression/function_call/mod.rs#L973) is common for Yul and EVMLA representations.
 
-
-
 # [BALANCE](https://www.evm.codes/#31?fork=shanghai)
 
 ### System Contract
 
-This information is requested a System Contract called [L2EthToken](https://github.com/code-423n4/2023-10-zksync/blob/main/code/system-contracts/contracts/L2EthToken.sol).
+This information is requested a System Contract called [L2EthToken](https://github.com/matter-labs/system-contracts/blob/main/contracts/L2EthToken.sol).
 
-On how the System Contract is called, see [this section](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md).
+On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 
@@ -28,9 +26,9 @@ The request to the System Contract is done via the [SystemRequest](https://githu
 
 ### System Contract
 
-This information is requested a System Contract called [SystemContext](https://github.com/code-423n4/2023-10-zksync/blob/main/code/system-contracts/contracts/SystemContext.sol).
+This information is requested a System Contract called [SystemContext](https://github.com/matter-labs/system-contracts/blob/main/contracts/SystemContext.sol).
 
-On how the System Contract is called, see [this section](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md).
+On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 
@@ -42,7 +40,7 @@ The request to the System Contract is done via the [SystemRequest](https://githu
 
 # [CALLER](https://www.evm.codes/#33?fork=shanghai)
 
-This value is fetched with a native EraVM instruction.
+This value is fetched with a native [EraVM instruction: `context.caller`](https://matter-labs.github.io/eravm-spec/spec.html#ContextDefinitions).
 
 ### LLVM IR
 
@@ -52,7 +50,7 @@ This value is fetched with a native EraVM instruction.
 
 # [CALLVALUE](https://www.evm.codes/#34?fork=shanghai)
 
-This value is fetched with a native EraVM instruction.
+This value is fetched with a native [EraVM instruction: `context.get_context_u128`](https://matter-labs.github.io/eravm-spec/spec.html#ContextDefinitions).
 
 ### LLVM IR
 
@@ -91,6 +89,11 @@ ld      r1, r1                                                                  
 ```
 
 
+- [EraVM instruction: `ptr.add`](https://matter-labs.github.io/eravm-spec/spec.html#PtrAddDefinition)
+- [EraVM fat pointers](https://matter-labs.github.io/eravm-spec/spec.html#PointerDefinitions)
+- [EraVM memory forwarding mechanism](https://matter-labs.github.io/eravm-spec/spec.html#MemoryForwarding)
+
+
 
 # [CALLDATASIZE](https://www.evm.codes/#36?fork=shanghai)
 
@@ -121,6 +124,10 @@ and     @CPI0_0[0], r1, stack[@calldatasize]                                    
 CPI0_0:
     .cell 4294967295
 ```
+
+- [EraVM instruction: `ptr.add`](https://matter-labs.github.io/eravm-spec/spec.html#PtrAddDefinition)
+- [EraVM fat pointers](https://matter-labs.github.io/eravm-spec/spec.html#PointerDefinitions)
+- [EraVM memory forwarding mechanism](https://matter-labs.github.io/eravm-spec/spec.html#MemoryForwarding)
 
 
 
@@ -156,6 +163,10 @@ call void @llvm.memcpy.p1.p3.i256(ptr addrspace(1) align 1 inttoptr (i256 128 to
 ```
 
 
+- [EraVM instruction: `ptr.add`](https://matter-labs.github.io/eravm-spec/spec.html#PtrAddDefinition)
+- [EraVM fat pointers](https://matter-labs.github.io/eravm-spec/spec.html#PointerDefinitions)
+- [EraVM memory forwarding mechanism](https://matter-labs.github.io/eravm-spec/spec.html#MemoryForwarding)
+
 
 # [CODECOPY](https://www.evm.codes/#38?fork=shanghai)
 
@@ -177,9 +188,9 @@ See [the EraVM docs](https://era.zksync.io/docs/reference/architecture/differenc
 
 ### System Contract
 
-This information is requested a System Contract called [SystemContext](https://github.com/code-423n4/2023-10-zksync/blob/main/code/system-contracts/contracts/SystemContext.sol).
+This information is requested a System Contract called [SystemContext](https://github.com/matter-labs/system-contracts/blob/main/contracts/SystemContext.sol).
 
-On how the System Contract is called, see [this section](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md#environmental-data-storage).
+On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 
@@ -193,9 +204,9 @@ The request to the System Contract is done via the [SystemRequest](https://githu
 
 ### System Contract
 
-This information is requested a System Contract called [AccountCodeStorage](https://github.com/code-423n4/2023-10-zksync/blob/main/code/system-contracts/contracts/AccountCodeStorage.sol).
+This information is requested a System Contract called [AccountCodeStorage](https://github.com/matter-labs/system-contracts/blob/main/contracts/AccountCodeStorage.sol).
 
-On how the System Contract is called, see [this section](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md).
+On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 
@@ -240,6 +251,7 @@ CPI0_1:
     .cell 4294967295
 ```
 
+[EraVM instruction: `call`](https://matter-labs.github.io/eravm-spec/spec.html#NearCallDefinition)
 
 
 # [RETURNDATACOPY](https://www.evm.codes/#3e?fork=shanghai)
@@ -273,15 +285,17 @@ call void @llvm.memcpy.p1.p3.i256(ptr addrspace(1) align 1 inttoptr (i256 128 to
     jump.lt @.BB0_3             ; loop continuation branching
 ```
 
+- [EraVM instruction: `jump`](https://matter-labs.github.io/eravm-spec/spec.html#JumpDefinition)
+- [EraVM instruction predication](https://matter-labs.github.io/eravm-spec/spec.html#Predication)
 
 
 # [EXTCODEHASH](https://www.evm.codes/#3f?fork=shanghai)
 
 ### System Contract
 
-This information is requested a System Contract called [AccountCodeStorage](https://github.com/code-423n4/2023-10-zksync/blob/main/code/system-contracts/contracts/AccountCodeStorage.sol).
+This information is requested a System Contract called [AccountCodeStorage](https://github.com/matter-labs/system-contracts/blob/main/contracts/AccountCodeStorage.sol).
 
-On how the System Contract is called, see [this section](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md).
+On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 

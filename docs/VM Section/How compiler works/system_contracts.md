@@ -1,7 +1,7 @@
 # System Contracts
 
 Many EVM instructions require special handling by the [System Contracts](https://era.zksync.io/docs/reference/architecture/system-contracts.html). Among them are:
-`ORIGIN`, `CALLVALUE`, `BALANCE`, `CREATE`, `SHA3`, and others. To see the full detailed list of instructions requiring special handling, see [the EVM instructions reference](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions/evm).
+`ORIGIN`, `CALLVALUE`, `BALANCE`, `CREATE`, `SHA3`, and others. To see the full detailed list of instructions requiring special handling, see [the EVM instructions reference](./instructions/evm/).
 
 There are several types of System Contracts from the perspective of how they are handled by the zkSync Era compilers:
 
@@ -28,7 +28,7 @@ Steps to handle such instructions:
 1. Store the calldata for the System Contract call on the auxiliary heap.
 2. Call the System Contract with a static call.
 3. Check the return status code of the call.
-4. [Revert or throw](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/exception_handling.md) if the status code is zero.
+4. [Revert or throw](exception_handling.md) if the status code is zero.
 5. Read the ABI data and extract the result. All such System Contracts return a single 256-bit value.
 6. Return the value as the result of the original instruction.
 
@@ -60,14 +60,21 @@ EraVM does not support passing Ether natively, so this is handled by a special S
 
 An external call is redirected through the simulator if the following conditions are met:
 
-1. The [call](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions/evm/call.md) has the Ether value parameter.
+1. The [call](./instructions/evm/call.md#call) has the Ether value parameter.
 2. The Ether value is non-zero.
 
 The call to the simulator requires extra data passed via ABI using registers:
 
 1. Ether value.
 2. The address of the contract to call.
-3. The system call bit, which is only set if a call to the [ContractDeployer](#contract-deployer) is being redirected, that is `CREATE` or `CREATE2` is called with non-zero Ether.
+3. The [system call bit](https://matter-labs.github.io/eravm-spec/spec.html#to_system), which is only set if a call to the [ContractDeployer](#contract-deployer) is being redirected, that is `CREATE` or `CREATE2` is called with non-zero Ether.
+
+Passing Ether value in EraVM is implemented by using a combination of:
+
+- a special 128-bit register [`context_u128`](https://matter-labs.github.io/eravm-spec/spec.html#gs_context_u128) which is a part of the EraVM [transient state](https://matter-labs.github.io/eravm-spec/spec.html#StateDefinitions);
+- an [immutable value of `context_u128`](https://matter-labs.github.io/eravm-spec/spec.html#ecf_context_u128_value) captured in the stack frame in a moment of a call.
+
+The process of setting up a value and capturing it is described in details in the section [Context Register of the EraVM specification](https://matter-labs.github.io/eravm-spec/spec.html#StateDefinitions).
 
 For reference, see [the LLVM IR codegen source code](https://github.com/matter-labs/era-compiler-llvm-context/blob/main/src/eravm/evm/call.rs#L530).
 
@@ -83,7 +90,7 @@ For reference, see LLVM IR codegen for [instructions for immutables](https://git
 
 ### Event Handler
 
-Event payloads are sent to a special System Contract called [EventWriter](https://github.com/code-423n4/2023-10-zksync/blob/main/code/system-contracts/contracts/EventWriter.yul). Like on EVM, the payload consists of topics and data:
+Event payloads are sent to a special System Contract called [EventWriter](https://github.com/matter-labs/system-contracts/blob/main/contracts/EventWriter.yul). Like on EVM, the payload consists of topics and data:
 
 1. The topics with a length-prefix are passed via ABI using registers.
 2. The data is passed via the default heap, like on EVM.
@@ -101,4 +108,18 @@ on [the IR level](https://era.zksync.io/docs/tools/compiler-toolchain/overview.h
 However, the are several cases where EraVM needs to allocate memory on the heap and EVM does not. The auxiliary heap is used for these cases:
 
 1. [Returning immutables](https://era.zksync.io/docs/reference/architecture/differences-with-ethereum.html#setimmutable-loadimmutable) from the constructor.
-2. Allocating calldata and return data for calling the [System Contracts](https://era.zksync.io/docs/reference/architecture/system-contracts.html).
+2. Allocating calldata and return data for calling the [System
+Contracts](https://era.zksync.io/docs/reference/architecture/system-contracts.html).
+
+While the ordinary heap contains calldata and return data for calls to **user
+contracts**, auxiliary heap contains calldata and return data for calls to
+**system contracts**. This ensures better compatibility with EVM as
+users should be able to call EraVM-specific system contracts in a transparent
+way, without system contracts affecting calldata or return data. This prevents a
+situation, where calling system contracts interferes with the heap layout
+expected by the contract developer.
+
+For more details on the heaps, refer to the EraVM specification, which
+details [types of heaps](https://matter-labs.github.io/eravm-spec/spec.html#data_page_params),
+their connections to the [stack frames and memory growth](https://matter-labs.github.io/eravm-spec/spec.html#ctx_heap_page_id),
+and their role in [communication between contracts](https://matter-labs.github.io/eravm-spec/spec.html#MemoryForwarding).

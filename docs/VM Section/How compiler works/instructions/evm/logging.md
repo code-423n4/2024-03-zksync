@@ -9,14 +9,14 @@ The words must contain data in the following order:
 
 Each write operation can contain some subsequent data from its next step. If only one word remains, the second input is zero.
 
-
+See [EraVM instruction: `log.event`](https://matter-labs.github.io/eravm-spec/spec.html#EventDefinition)
 
 # [LOG0](https://www.evm.codes/#a0?fork=shanghai) - [LOG4](https://www.evm.codes/#a4?fork=shanghai)
 
 ### System Contract
 
-This information is requested a System Contract called [EventWriter](https://github.com/code-423n4/2023-10-zksync/blob/main/code/system-contracts/contracts/EventWriter.yul).
+This information is requested a System Contract called [EventWriter](https://github.com/matter-labs/system-contracts/blob/main/contracts/EventWriter.sol).
 
-On how the System Contract is called, see [this section](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md).
+On how the System Contract is called, see [this section](../../system_contracts.md#event-handler).
 
 [The LLVM IR generator code](https://github.com/matter-labs/era-compiler-llvm-context/blob/main/src/eravm/evm/event.rs#L20) is common for Yul and EVMLA representations.
