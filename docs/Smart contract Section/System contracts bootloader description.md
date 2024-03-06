@@ -1,4 +1,4 @@
-# System contracts/bootloader description (VM v1.4.0)
+# System contracts/bootloader description (VM v1.5.0)
 
 ## Bootloader
 
@@ -75,6 +75,8 @@ There is no need to copy returned data if the B returns a slice of the returndat
 
 Note, that you can *not* use the pointer that you received via calldata as returndata (i.e. return it at the end of the execution frame). Otherwise, it would be possible that returndata points to the memory slice of the active frame and allow editing the `returndata`. It means that in the examples above, C could not return a slice of its calldata without memory copying.
 
+Note, that the rule above is implemented by the principle "it is not possible to return a slice of data with memory page id lower than the memory page id of the current heap", since a memory page with smaller id could only be created before the call. That's why a user contract can usually safely return a slice of previously returned returndata (since it is guaranteed to have a higher memory page id). However, system contracts have an exemption from the rule above. It is needed in particular to the correct functionality of the `CodeOracle` system contract (TODO: link). So the rule of thumb is that returndata from `CodeOracle` should never be passed along.
+
 Some of these memory optimizations can be seen utilized in the [EfficientCall](https://github.com/code-423n4/2023-10-zksync/blob/main/code/system-contracts/contracts/libraries/EfficientCall.sol) library that allows to perform a call while reusing the slice of calldata that the frame already has, without memory copying.
 
 ### Returndata & precompiles
@@ -108,10 +110,11 @@ These opcodes are allowed only for contracts in kernel space (i.e. system contr
     - It does nothing (i.e. just burns ergs) otherwise. It can be used to burn ergs needed for L2→L1 communication or publication of bytecodes onchain.
 - `setValueForNextFarCall` sets `msg.value` for the next `call`/`mimic_call`. Note, that it does not mean that the value will be really transferred. It just sets the corresponding `msg.value` context variable. The transferring of ETH should be done via other means by the system contract that uses this parameter. Note, that this method has no effect on `delegatecall` , since `delegatecall` inherits the `msg.value` of the previous frame.
 - `increment_tx_counter` increments the counter of the transactions within the VM. The transaction counter used mostly for the VM’s internal tracking of events. Used only in bootloader after the end of each transaction.
+- `decommit` will return a pointer to a slice with the corresponding bytecode hash preimage. If this bytecode has been unpacked before, the memory page where it was unpacked will be reused. If it has never been unpacked before, it will be unpacked into the current heap.
 
 Note, that currently we do not have access to the `tx_counter` within VM (i.e. for now it is possible to increment it and it will be automatically used for logs such as `event`s as well as system logs produced by `to_l1`, but we can not read it). We need to read it to publish the *user* L2→L1 logs, so `increment_tx_counter` is always accompanied by the corresponding call to the [SystemContext](#systemcontext) contract.
 
-More on the difference between system and user logs can be read [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md). - `set_pubdata_price` sets the price (in gas) for publishing a single byte of pubdata.
+More on the difference between system and user logs can be read [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
 
 ### **Generally accessible**
 
@@ -380,14 +383,16 @@ We process the L2 transactions according to our account abstraction protocol: [h
 2. Then we calculate the gasPrice for these transactions according to the EIP1559 rules.
 3. We [conduct the validation step](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1180) of the AA protocol:
 - We calculate the hash of the transaction.
-- If enough gas has been provided, we near_call the validation function in the bootloader. It sets the tx.origin to the address of the bootloader, sets the ergsPrice. It also marks the factory dependencies provided by the transaction as marked and then invokes the validation method of the account and verifies the returned magic.
+- If enough gas has been provided, we `near_call` the validation function in the bootloader. It sets the tx.origin to the address of the bootloader, sets the ergsPric and then invokes the validation method of the account and verifies the returned magic.
 - Calls the accounts and, if needed, the paymaster to receive the payment for the transaction. Note, that accounts may not use `block.baseFee` context variable, so they have no way to know what exact sum to pay. That’s why the accounts typically firstly send `tx.maxFeePerErg * tx.ergsLimit` and the bootloader [refunds](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L730) for any excess funds sent.
-1. [We perform the execution of the transaction](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1234). Note, that if the sender is an EOA, tx.origin is set equal to the `from` the value of the transaction. During the execution of the transaction, the publishing of the compressed bytecodes happens: for each factory dependency if it has not been published yet and its hash is currently pointed to in the compressed bytecodes area of the bootloader, a call to the bytecode compressor is done. Also, at the end the call to the KnownCodeStorage is done to ensure all the bytecodes have indeed been published.
-2. We [refund](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1401) the user for any excess funds he spent on the transaction:
-- Firstly, the postTransaction operation is called to the paymaster.
+4. [We perform the execution of the transaction](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1234). Note, that if the sender is an EOA, tx.origin is set equal to the `from` the value of the transaction. During the execution of the transaction, the publishing of the compressed bytecodes happens: for each factory dependency if it has not been published yet and its hash is currently pointed to in the compressed bytecodes area of the bootloader, a call to the bytecode compressor is done. Also, at the end the call to the KnownCodeStorage is done to ensure all the bytecodes have indeed been published.
+5. We [refund](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1401) the user for any excess funds he spent on the transaction:
+- Firstly, the `postTransaction` operation is called to the paymaster.
 - The bootloader asks the operator to provide a refund. During the first VM run without proofs the provide directly inserts the refunds in the memory of the bootloader. During the run for the proved batches, the operator already knows what which values have to be inserted there. You can read more about it in the [documentation](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md) of the fee model.
 - The bootloader refunds the user.
-1. We notify the operator about the [refund](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1112) that was granted to the user. It will be used for the correct displaying of gasUsed for the transaction in explorer.
+6. We notify the operator about the [refund](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1112) that was granted to the user. It will be used for the correct displaying of gasUsed for the transaction in explorer.
+
+After (3), (4) and (5) we double check whether the user has enough gas to pay for the published pubdata. You can read more on how we handle pubdata [here](./zkSync%20fee%20model.md#How%20we%20charge%20for%20pubdata).
 
 ## L1->L2 transactions
 
@@ -610,6 +615,23 @@ One of the most expensive resource for a rollup is data availability, so in orde
 - We compress state diffs.
 
 This contract contains utility methods that are used to verify the correctness of either bytecode or state diff compression. You can read more on how we compress state diffs and bytecodes in the corresponding [document](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
+
+## CodeOracle
+
+It is a contract that accepts the versioned hash of a bytecode and returns the preimage of it. It is similar to the `extcodecopy` functionality on Ethereum.
+
+It works the following way:
+
+1. It accepts a versioned hash and double checks that it is marked as “known”, i.e. the operator must know the preimage for such hash.
+2. After that, it uses the `decommit` opcode, which accepts the versioned hash and the number of ergs to spent, which is proportional to the length of the preimage. If the preimage has been decommitted before, the requested cost will be refunded to the user.
+
+Note, that the decommitment process does not only happen using the `decommit` opcode, but during calls to contracts. Whenever a contract is called, its code is decommitted into a memory page dedicated to contract code. We never decommit the same preimage twice, regardless of whether it was decommitted via an explicit opcode or during a call to another contract, the previous unpacked bytecode memory page will be reused. When executing `decommit` inside the `CodeOracle` contract, the user will be firstly precharged with maximal possilbe price and then it will be refunded in case the bytecode has been decommitted before. 
+
+3. The `decommit` opcode returns to the slice of the decommitted bytecode. Note, that the returned pointer always has length of 2^20 bytes, regardless of the length of the actual bytecode. So it is the job of the `CodeOracle` system contract to shrink the length of the returned data.
+
+## P256Verify
+
+This contract exerts the same behavior as the P256Verify precompile from [RIP7212](https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md). Note, that since Era has different gas schedule, we do not comply with the gas costs, but otherwise the interface is indentical.
 
 # Known issues to be resolved
 
