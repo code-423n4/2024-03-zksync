@@ -32,6 +32,8 @@ zkSync Era protocol consists of the following critical components:
 * Prover: The prover constructs the cryptographic proofs that attest to the correctness of the transactions processed off-chain. These proofs can be verified later on Ethereum, ensuring that only valid transactions are accepted.
 * Smart Contracts: These contracts are the on-chain component of the zkRollup. They are responsible for verifying the proofs submitted by the prover and updating the Ethereum blockchain's state accordingly. Additionally, they facilitate interactions between Ethereum and zkSync, such as deposits, withdrawals, and cross-layer messaging.
 
+![zkSync components.png](zkSync%20components.png)
+
 While this contest primarily focuses on the smart contracts side of zkSync Era, understanding the interaction between different components can be beneficial. For additional context or insights, consider exploring these resources:
 * Node Implementation: https://github.com/matter-labs/zksync-era
 * ZK Circuits: https://github.com/matter-labs/era-zkevm_circuits
