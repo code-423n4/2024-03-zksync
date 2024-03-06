@@ -1,8 +1,6 @@
 # L1 Smart contracts
 
-This document presumes familiarity with Rollups. For a better understanding, consider reading the Rollup introduction [here](https://era.zksync.io/docs/reference/concepts/rollups.html).
-
-Unlike Ethereum, zkSync Era doesn't need to have its separate consensus to achieve a high level of decentralization. Instead, it inherits security guarantees from Ethereum, on which it stores information about changes in the blockchain, providing validity proofs for state transition, implementing a communication mechanism, etc. In practice, all this is achieved by Smart Contracts built on top of Ethereum. This document details the architecture of zkSync contracts on Ethereum Layer 1.
+TODO: say that this section is focused on zkSync Era smart contracts, but it does explain only how one instance of rollup works for description of shared bridge please look into TODO link.
 
 ## Diamond
 
@@ -177,28 +175,6 @@ The L2 counterpart of the L1 ERC20 bridge.
 
 The owner of the L2ERC20Bridge and the contracts related to it is the Governance contract.
 
-### L1WethBridge
-
-The custom bridge exclusively handles transfers of WETH tokens between the two domains. It is designed to streamline and
-enhance the user experience for bridging WETH tokens by minimizing the number of transactions required and reducing
-liquidity fragmentation thus improving efficiency and user experience.
-
-This contract accepts WETH deposits on L1, unwraps them to ETH, and sends the ETH to the L2 WETH bridge contract, where
-it is wrapped back into WETH and delivered to the L2 recipient.
-
-Thus, the deposit is made in one transaction, and the user receives L2 WETH that can be unwrapped to ETH.
-
-For withdrawals, the contract receives ETH from the L2 WETH bridge contract, wraps it into WETH, and sends the WETH to
-the L1 recipient.
-
-The owner of the L1WethBridge contract is the Governance contract.
-
-### L2WethBridge
-
-The L2 counterpart of the L1 WETH bridge.
-
-The owner of the L2WethBridge and L2Weth contracts is the Governance contract.
-
 ## Governance
 
 This contract manages calls for all governed zkSync Era contracts on L1 and L2. Mostly, it is used for upgradability and changing critical system parameters. The contract has minimum delay settings for the call execution. 
@@ -245,22 +221,3 @@ The auxiliary contract controls the permission access list. It is used in bridge
 addresses can interact with them in the Alpha release. Currently, it is supposed to set all permissions to public. 
 
 The owner of the Allowlist contract is the Governance contract.
-
-## Deposit Limitation
-
-The amount of deposit can be limited. This limitation is applied on an account level and is not time-based. In other
-words, each account cannot deposit more than the cap defined. The tokens and the cap can be set through governance
-transactions. Moreover, there is an allow listing mechanism as well (only some allow listed accounts can call some
-specific functions). So, the combination of deposit limitation and allow listing leads to limiting the deposit of the
-allow listed account to be less than the defined cap.
-
-```solidity
-struct Deposit {
-  bool depositLimitation;
-  uint256 depositCap;
-}
-```
-
-Currently, the limit is used only for blocking deposits of the specific token (turning on the limitation and setting the
-limit to zero). And on the near future, this functionality will be completely removed.
-
