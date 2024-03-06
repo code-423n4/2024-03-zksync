@@ -293,36 +293,36 @@ The batch information slots [are used at the beginning of the batch](https://git
 - `[40..72]` – slots for holding the paymaster context data for the current transaction. The role of the paymaster context is similar to the [EIP4337](https://eips.ethereum.org/EIPS/eip-4337)’s one. You can read more about it in the account abstraction documentation.
 - `[73..74]` – slots for signed and explorer transaction hash of the currently processed L2 transaction.
 - `[75..110]` – 36 slots for the calldata for the KnownCodesContract call.
-- `[111..1134]` – 1024 slots for the refunds for the transactions.
-- `[1135..2158]` – 1024 slots for the overhead for batch for the transactions. This overhead is suggested by the operator, i.e. the bootloader will still double-check that the operator does not overcharge the user.
-- `[2159..3182]` – slots for the “trusted” gas limits by the operator. The user’s transaction will have at its disposal `min(MAX_TX_GAS(), trustedGasLimit)`, where `MAX_TX_GAS` is a constant guaranteed by the system. Currently, it is equal to 80 million gas. In the future, this feature will be removed. 
-- `[3183..7282]` – slots for storing L2 block info for each transaction. You can read more on the difference L2 blocks and batches [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md).
-- `[7283..40050]` – slots used for compressed bytecodes each in the following format:
+- `[111..10110]` – 10000 slots for the refunds for the transactions.
+- `[10111..20110]` – 10000 slots for the overhead for batch for the transactions. This overhead is suggested by the operator, i.e. the bootloader will still double-check that the operator does not overcharge the user.
+- `[20111..30110]` – slots for the “trusted” gas limits by the operator. The user’s transaction will have at its disposal `min(MAX_TX_GAS(), trustedGasLimit)`, where `MAX_TX_GAS` is a constant guaranteed by the system. Currently, it is equal to 80 million gas. In the future, this feature will be removed. 
+- `[30111..70114]` – slots for storing L2 block info for each transaction. You can read more on the difference L2 blocks and batches [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md).
+- `[70115..135650]` – slots used for compressed bytecodes each in the following format:
     - 32 bytecode hash
     - 32 zeroes (but then it will be modified by the bootloader to contain 28 zeroes and then the 4-byte selector of the `publishCompressedBytecode` function of the `BytecodeCompresor`)
     - The calldata to the bytecode compressor (without the selector). 
-- `[40051..40052]` – slots where the hash and the number of current priority ops is stored. More on it in the priority operations [section](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
+- `[135651..135652]` – slots where the hash and the number of current priority ops is stored. More on it in the priority operations [section](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
 
 ### L1Messenger Pubdata
 
-- `[40053..248052]` – slots where the final batch pubdata is supplied to be verified by the L1Messenger. More on how the L1Messenger system contracts handles the pubdata can be read [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
+- `[135653..586652]` – slots where the final batch pubdata is supplied to be verified by the L1Messenger. More on how the L1Messenger system contracts handles the pubdata can be read [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
 
 But briefly, this space is used for the calldata to the L1Messenger’s `publishPubdataAndClearState` function, which accepts the list of the user L2→L1 logs, published L2→L1 messages as well as bytecodes. It also takes the list of full state diff entries, which describe how each storage slot has changed as well as compressed state diffs. This method will then check the correctness of the provided data and publish the hash of the correct pubdata to L1.
 
-Note, that while the realistic number of pubdata that can be published in a batch is 120kb, the size of the calldata to L1Messenger may be a lot larger due to the fact that this method also accepts the original uncompressed state diff entries. These will not be published to L1, but will be used to verify the correctness of the compression. The worst-case number of bytes that may be needed for this scratch space is if all the pubdata consists of repeated writes (i.e. we’ll need only 4 bytes to include key) that turn into 0 (i.e. they’ll need only 1 byte to describe it). However, each of these writes in the uncompressed form will be represented as 272 byte state diff entry and so we get the number of diffs is `120k / 5 = 24k`. This means that they will have
-accoomdate `24k * 272 = 6528000` bytes of calldata for the uncompressed state diffs. Adding 120k on top leaves us with roughly `6650000` bytes needed for calldata. `207813` slots are needed to accomodate this amount of data.
-We round up to `208000` slots to give space for constant-size factors for ABI-encoding, like offsets, lengths, etc.
+Note, that while the realistic number of pubdata that can be published in a batch is ~260kb, the size of the calldata to L1Messenger may be a lot larger due to the fact that this method also accepts the original uncompressed state diff entries. These will not be published to L1, but will be used to verify the correctness of the compression. The worst-case number of bytes that may be needed for this scratch space is if all the pubdata consists of repeated writes (i.e. we’ll need only 4 bytes to include key) that turn into 0 (i.e. they’ll need only 1 byte to describe it). However, each of these writes in the uncompressed form will be represented as 272 byte state diff entry and so we get the number of diffs is `260kb / 5 = 52k`. This means that they will have
+accoomdate `52k * 272 = 14144000` bytes of calldata for the uncompressed state diffs. Adding 260k on top leaves us with roughly `14404000` bytes needed for calldata. `450125` slots are needed to accomodate this amount of data.
+We round up to `451000` slots to give space for constant-size factors for ABI-encoding, like offsets, lengths, etc.
 
 In theory though much more calldata could be used (if for instance 1 byte is used for enum index). It is the responsibility of the operator to ensure that it can form the correct calldata for the L1Messenger.
 
 ### **Transaction’s meta descriptions**
 
-- `[248053..250100]` words — 2048 slots for 1024 transaction’s meta descriptions (their structure is explained below).
+- `[586653..606652]` words — 20000 slots for 10000 transaction’s meta descriptions (their structure is explained below).
 
 For internal reasons related to possible future integrations of zero-knowledge proofs about some of the contents of the bootloader’s memory, the array of the transactions is not passed as the ABI-encoding of the array of transactions, but:
 
-- We have a constant maximum number of transactions. At the time of this writing, this number is 1024.
-- Then, we have 1024 transaction descriptions, each ABI encoded as the following struct:
+- We have a constant maximum number of transactions. At the time of this writing, this number is 10000.
+- Then, we have 10000 transaction descriptions, each ABI encoded as the following struct:
 
 ```solidity
 struct BootloaderTxDescription {
@@ -339,13 +339,13 @@ struct BootloaderTxDescription {
 
 ### **Reserved slots for the calldata for the paymaster’s postOp operation**
 
-- `[252149..252188]` words — 40 slots which could be used for encoding the calls for postOp methods of the paymaster.
+- `[606653..606692]` words — 40 slots which could be used for encoding the calls for postOp methods of the paymaster.
 
 To avoid additional copying of transactions for calls for the account abstraction, we reserve some of the slots which could be then used to form the calldata for the `postOp` call for the account abstraction without having to copy the entire transaction’s data.
 
 ### **The actual transaction’s descriptions**
 
-- `[252189..523261]`
+- `[606693..927496]`
 
 Starting from the 487312 word, the actual descriptions of the transactions start. (The struct can be found by this [link](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/libraries/TransactionHelper.sol#L25)). The bootloader enforces that:
 
@@ -355,13 +355,13 @@ Starting from the 487312 word, the actual descriptions of the transactions start
 
 ### **VM hook pointers**
 
-- `[523261..523263]`
+- `[927497..927499]`
 
 These are memory slots that are used purely for debugging purposes (when the VM writes to these slots, the server side can catch these calls and give important insight information for debugging issues).
 
 ### **Result ptr pointer**
 
-- [523264..524287]
+- [927500..928523]
 
 These are memory slots that are used to track the success status of a transaction. If the transaction with number `i` succeeded, the slot `2^19 - 1024 + i` will be marked as 1 and 0 otherwise.
 
@@ -383,16 +383,14 @@ We process the L2 transactions according to our account abstraction protocol: [h
 2. Then we calculate the gasPrice for these transactions according to the EIP1559 rules.
 3. We [conduct the validation step](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1180) of the AA protocol:
 - We calculate the hash of the transaction.
-- If enough gas has been provided, we `near_call` the validation function in the bootloader. It sets the tx.origin to the address of the bootloader, sets the ergsPric and then invokes the validation method of the account and verifies the returned magic.
+- If enough gas has been provided, we near_call the validation function in the bootloader. It sets the tx.origin to the address of the bootloader, sets the ergsPrice. It also marks the factory dependencies provided by the transaction as marked and then invokes the validation method of the account and verifies the returned magic.
 - Calls the accounts and, if needed, the paymaster to receive the payment for the transaction. Note, that accounts may not use `block.baseFee` context variable, so they have no way to know what exact sum to pay. That’s why the accounts typically firstly send `tx.maxFeePerErg * tx.ergsLimit` and the bootloader [refunds](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L730) for any excess funds sent.
-4. [We perform the execution of the transaction](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1234). Note, that if the sender is an EOA, tx.origin is set equal to the `from` the value of the transaction. During the execution of the transaction, the publishing of the compressed bytecodes happens: for each factory dependency if it has not been published yet and its hash is currently pointed to in the compressed bytecodes area of the bootloader, a call to the bytecode compressor is done. Also, at the end the call to the KnownCodeStorage is done to ensure all the bytecodes have indeed been published.
-5. We [refund](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1401) the user for any excess funds he spent on the transaction:
-- Firstly, the `postTransaction` operation is called to the paymaster.
+1. [We perform the execution of the transaction](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1234). Note, that if the sender is an EOA, tx.origin is set equal to the `from` the value of the transaction. During the execution of the transaction, the publishing of the compressed bytecodes happens: for each factory dependency if it has not been published yet and its hash is currently pointed to in the compressed bytecodes area of the bootloader, a call to the bytecode compressor is done. Also, at the end the call to the KnownCodeStorage is done to ensure all the bytecodes have indeed been published.
+2. We [refund](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1401) the user for any excess funds he spent on the transaction:
+- Firstly, the postTransaction operation is called to the paymaster.
 - The bootloader asks the operator to provide a refund. During the first VM run without proofs the provide directly inserts the refunds in the memory of the bootloader. During the run for the proved batches, the operator already knows what which values have to be inserted there. You can read more about it in the [documentation](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md) of the fee model.
 - The bootloader refunds the user.
-6. We notify the operator about the [refund](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1112) that was granted to the user. It will be used for the correct displaying of gasUsed for the transaction in explorer.
-
-After (3), (4) and (5) we double check whether the user has enough gas to pay for the published pubdata. You can read more on how we handle pubdata [here](./zkSync%20fee%20model.md#How%20we%20charge%20for%20pubdata).
+1. We notify the operator about the [refund](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1112) that was granted to the user. It will be used for the correct displaying of gasUsed for the transaction in explorer.
 
 ## L1->L2 transactions
 
