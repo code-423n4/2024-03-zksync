@@ -319,8 +319,8 @@ Make sure that access to any dangerous logic is well-constrained. For instance:
 
 ```
 - If you have a public code repo, please share it here:  https://github.com/matter-labs/era-contracts
-- How many contracts are in scope?:   39
-- Total SLoC for these contracts?:  6011
+- How many contracts are in scope?:   114
+- Total SLoC for these contracts?:  10,663
 - How many external imports are there?:  13
 - How many separate interfaces and struct definitions are there for the contracts within scope?:  94
 - Does most of your code generally use composition or inheritance?:   inheritance
