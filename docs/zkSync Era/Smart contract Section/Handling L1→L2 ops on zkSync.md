@@ -13,38 +13,40 @@ Please read the full [article](https://github.com/code-423n4/2024-03-zksync/blob
 
 ## Initiation
 
-A new priority operation can be appended by calling the [requestL2Transaction](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/facets/Mailbox.sol#L236) method on L1. This method will perform several checks for the transaction, making sure that it is processable and provides enough fee to compensate the operator for this transaction. Then, this transaction will be [appended](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/facets/Mailbox.sol#L369C1-L369C1) to the priority queue.  
+A new priority operation can be appended by calling the [requestL2TransactionDirect](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/bridgehub/Bridgehub.sol#L197) or [requestL2TransactionTwoBridges](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/bridgehub/Bridgehub.sol#L242) methods on `BridgeHub` smart contract. `BridgeHub` will forward funds to the `SharedBridge` and send transaction request to the specified state transition contract (selected by the chainID). State transition contract will perform several checks for the transaction, making sure that it is processable and provides enough fee to compensate the operator for this transaction. Then, this transaction will be [appended](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/state-transition/chain-deps/facets/Mailbox.sol#L346) to the priority queue.
+
+TODO: describes the differences between `requestL2TransactionDirect` and `requestL2TransactionTwoBridges`.
 
 ## Bootloader
 
-Whenever an operator sees a priority operation, it can include the transaction into the batch. While for normal L2 transaction the account abstraction protocol will ensure that the `msg.sender` has indeed agreed to start a transaction out of this name, for L1→L2 transactions there is no signature verification. In order to verify that the operator includes only transactions that were indeed requested on L1, the bootloader [maintains](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L970) two variables:
+Whenever an operator sees a priority operation, it can include the transaction into the batch. While for normal L2 transaction the account abstraction protocol will ensure that the `msg.sender` has indeed agreed to start a transaction out of this name, for L1→L2 transactions there is no signature verification. In order to verify that the operator includes only transactions that were indeed requested on L1, the bootloader [maintains](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/bootloader/bootloader.yul#L1056) two variables:
 
 - `numberOfPriorityTransactions` (maintained at `PRIORITY_TXS_L1_DATA_BEGIN_BYTE` of bootloader memory)
 - `priorityOperationsRollingHash` (maintained at `PRIORITY_TXS_L1_DATA_BEGIN_BYTE + 32` of the bootloader memory)
 
 Whenever a priority transaction is processed, the `numberOfPriorityTransactions` gets incremented by 1, while `priorityOperationsRollingHash` is assigned to `keccak256(priorityOperationsRollingHash, processedPriorityOpHash)`, where `processedPriorityOpHash` is the hash of the priority operations that has been just processed.
 
-Also, for each priority transaction, we [emit](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L966) a user L2→L1 log with its hash and result, which basically means that it will get Merklized and users will be able to prove on L1 that a certain priority transaction has succeeded or failed (which can be helpful to reclaim your funds from bridges if the L2 part of the deposit has failed).
+Also, for each priority transaction, we [emit](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/bootloader/bootloader.yul#L1052) a user L2→L1 log with its hash and result, which basically means that it will get Merklized and users will be able to prove on L1 that a certain priority transaction has succeeded or failed (which can be helpful to reclaim your funds from bridges if the L2 part of the deposit has failed).
 
-Then, at the end of the batch, we [submit](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L3819) and 2 L2→L1 log system log with these values.
+Then, at the end of the batch, we [submit](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/bootloader/bootloader.yul#L3870) 2 L2→L1 log system log with these values.
 
 ## Batch commit
 
-During block commit, the contract will remember those values, but not validate them in any way.
+During batch commit, the contract will remember those values, but not validate them in any way.
 
 ## Batch execution
 
-During batch execution, we would pop `numberOfPriorityTransactions` from the top of priority queue and [verify](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/facets/Executor.sol#L282) that their rolling hash does indeed equal to `priorityOperationsRollingHash`.
+During batch execution, we would pop `numberOfPriorityTransactions` from the top of priority queue and [verify](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/state-transition/chain-deps/facets/Executor.sol#L325) that their rolling hash does indeed equal to `priorityOperationsRollingHash`.
 
 # Upgrade transactions
 
 ## Initiation
 
-Upgrade transactions can only be created during a system upgrade. It is done if the `DiamondProxy` delegatecalls to the implementation that manually puts this transaction into the storage of the DiamondProxy. Note, that since it happens during the upgrade, there is no “real” checks on the structure of this transaction. We do have [some validation](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/upgrades/BaseZkSyncUpgrade.sol#L175), but it is purely on the side of the implementation which the `DiamondProxy` delegatecalls to and so may be lifted if the implementation is changed.
+Upgrade transactions can only be created during a system upgrade. It is done if the `DiamondProxy` delegatecalls to the implementation that manually puts this transaction into the storage of the DiamondProxy, this could happen on calling [upgradeChainFromVersion](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/state-transition/chain-deps/facets/Admin.sol#L94) on the State Transition contract. Note, that since it happens during the upgrade, there is no “real” checks on the structure of this transaction. We do have [some validation](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/upgrades/BaseZkSyncUpgrade.sol#L194), but it is purely on the side of the implementation which the `DiamondProxy` delegatecalls to and so may be lifted if the implementation is changed.
 
-The hash of the currently required upgrade transaction is [stored](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/Storage.sol#L138) under `l2SystemContractsUpgradeTxHash`.
+The hash of the currently required upgrade transaction is [stored](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/state-transition/chain-deps/ZkSyncStateTransitionStorage.sol#L125) under `l2SystemContractsUpgradeTxHash`.
 
-We will also track the batch where the upgrade has been committed in the `l2SystemContractsUpgradeBatchNumber` [variable](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/Storage.sol#L141).
+We will also track the batch where the upgrade has been committed in the `l2SystemContractsUpgradeBatchNumber` [variable](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/state-transition/chain-deps/ZkSyncStateTransitionStorage.sol#L128).
 
 We can not support multiple upgrades in parallel, i.e. the next upgrade should start only after the previous one has been complete.
 
@@ -57,19 +59,19 @@ The upgrade transactions are processed just like with priority transactions, wit
 
 ## Commit
 
-After an upgrade has been initiated, it will be required that the next commit batches operation already contains the system upgrade transaction. It is [checked](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/facets/Executor.sol#L157) by verifying the corresponding L2→L1 log.
+After an upgrade has been initiated, it will be required that the next commit batches operation already contains the system upgrade transaction. It is [checked](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/state-transition/chain-deps/facets/Executor.sol#L177) by verifying the corresponding L2→L1 log.
 
 We also remember that the upgrade transaction has been processed in this batch (by amending the `l2SystemContractsUpgradeBatchNumber` variable).
 
 ## Revert
 
-In a very rare event when the team needs to revert the batch with the upgrade on zkSync, the `l2SystemContractsUpgradeBatchNumber` is [reset](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/facets/Executor.sol#L412).
+In a very rare event when the team needs to revert the batch with the upgrade on zkSync, the `l2SystemContractsUpgradeBatchNumber` is [reset](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/state-transition/chain-deps/facets/Executor.sol#L487).
 
-Note, however, that we do not “remember” that certain batches had a version before the upgrade, i.e. if the reverted batches will have to be reexecuted, the upgrade transaction must still be present there, even if some of the deleted batches were committed before the upgrade and thus didn’t contain the transaction. 
+Note, however, that we do not “remember” that certain batches had a version before the upgrade, i.e. if the reverted batches will have to be reexecuted, the upgrade transaction must still be present there, even if some of the deleted batches were committed before the upgrade and thus didn’t contain the transaction.
 
 ## Execute
 
-Once batch with the upgrade transaction has been executed, we [delete](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/facets/Executor.sol#L304) them from storage for efficiency to signify that the upgrade has been fully processed and that a new upgrade can be initiated.
+Once batch with the upgrade transaction has been executed, we [delete](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/state-transition/chain-deps/facets/Executor.sol#L357) them from storage for efficiency to signify that the upgrade has been fully processed and that a new upgrade can be initiated.
 
 # Security considerations
 
@@ -83,13 +85,13 @@ In the Boojum though having such logic would be dangerous and would allow for th
 - The operator puts a malicious priority operation with an upgrade into the bootloader memory. This operation was never included in the priority operations queue / and it is not an upgrade transaction. However, as already mentioned above the bootloader has no idea what priority / upgrade transactions are correct and so this transaction will be processed.
 
 The most important caveat of this malicious upgrade is that it may change implementation of the `Keccak256` precompile to return any values that the operator needs.
-- When the`priorityOperationsRollingHash` will be updated, instead of the “correct” rolling hash of the priority transactions, the one which would appear with the correct topmost priority operation is returned. The operator can’t amend the behaviour of  `numberOfPriorityTransactions`, but it won’t help much, since the the`priorityOperationsRollingHash` will match on L1 on the execution step.
+- When the`priorityOperationsRollingHash` will be updated, instead of the “correct” rolling hash of the priority transactions, the one which would appear with the correct topmost priority operation is returned. The operator can’t amend the behaviour of `numberOfPriorityTransactions`, but it won’t help much, since the the `priorityOperationsRollingHash` will match on L1 on the execution step.
 
-That’s why the concept of the upgrade transaction is needed: this is the only transaction that can initiate transactions out of the kernel space and thus change bytecodes of system contracts. That’s why it must be the first one and that’s why [emit](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L587) its hash via a system L2→L1 log before actually processing it.
+That’s why the concept of the upgrade transaction is needed: this is the only transaction that can initiate transactions out of the kernel space and thus change bytecodes of system contracts. That’s why it must be the first one and that’s why [emit](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/bootloader/bootloader.yul#L603) its hash via a system L2→L1 log before actually processing it.
 
 ## Why it doesn’t break on the previous version of the system
 
-This section is not required for Boojum understanding but for those willing to analyze the production system that is deployed at the time of this writing. 
+This section is not required for current system understanding but for those willing to analyze the previous production system which wasn't susceptible to attack.
 
 Note that the hash of the transaction is calculated before the transaction is executed: [https://github.com/matter-labs/era-system-contracts/blob/3e954a629ad8e01616174bde2218241b360fda0a/bootloader/bootloader.yul#L1055](https://github.com/matter-labs/era-system-contracts/blob/3e954a629ad8e01616174bde2218241b360fda0a/bootloader/bootloader.yul#L1055) 
 
