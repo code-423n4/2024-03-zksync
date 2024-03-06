@@ -2,8 +2,7 @@
 
 # Motivation
 
-EIP-4844, commonly known as Proto-Danksharding, is an upgrade to the ethereum protocol that introduces a new data availability solution embedded in layer 1. More information about it can be found [here](https://ethereum.org/en/roadmap/danksharding/). With proto-danksharding we can utilize the new blob data availablitiy for cheaper storage of pubdata when we commit batches resulting in more transactions per batch and cheaper batches/transactions.
-- We want to ensure we have the flexibility at the contract level to process both pubdata via calldata, as well as pubdata via blobs
+EIP-4844, commonly known as Proto-Danksharding, is an upgrade to the ethereum protocol that introduces a new data availability solution embedded in layer 1. More information about it can be found [here](https://ethereum.org/en/roadmap/danksharding/). With proto-danksharding we can utilize the new blob data availablitiy for cheaper storage of pubdata when we commit batches resulting in more transactions per batch and cheaper batches/transactions. We want to ensure we have the flexibility at the contract level to process both pubdata via calldata, as well as pubdata via blobs. A quick callout here, while 4844 has introduced blobs as new DA layer, it is the first step in full Danksharding. With full Danksharding ethereum will be able to handle a total of 64 blobs per block unlike 4844 which supports just 6 per block.
 
 > 💡 Given the nature of 4844 development from a solidity viewpoint, we’ve had to create a temporary contract `BlobVersionedHash.yul` which acts in place of the eventual `BLOBHASH` opcode.
 
@@ -152,6 +151,7 @@ With the contents of the blob being verified, we need to add this information to
 - 2 `bytes32` for 4844 output commitment hashes
     - These are `(versioned hash || opening point || evaluation value)`
     - The format of the opening point here is expected to be the 16 byte value passed by calldata
+- We encode an additional 28 `bytes32(0)` at the end because with the inclusion of vm 1.5.0, our circuits support a total of 16 blobs that will be used once the total number of blobs supported by ethereum increase.
 
 ```solidity
 abi.encode(
@@ -163,6 +163,7 @@ abi.encode(
     _blob1OutputCommitment,
     _blob2LinearHash,
     _blob2OutputCommitment,
+    _encode28Bytes32Zeroes()
 );
 ```
 
