@@ -56,6 +56,7 @@ As part of this security audit, we are focusing on the changes and updates made 
 ### **1. Protocol Section**
 
 - **[Protocol overview](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Protocol%20Section/Overview.md)**
+- **[Migration process](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Protocol%20Section/Migration%20process.md)**
 
 ### **2. Smart Contracts Section**
 
