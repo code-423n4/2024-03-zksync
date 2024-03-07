@@ -487,7 +487,7 @@ These precompiles simulate the behaviour of the EVM's EcAdd and EcMul precompile
 
 ## L2BaseToken & MsgValueSimulator
 
-Unlike Ethereum, zkEVM does not have any notion of any special native token. That’s why we have to simulate operations with he native token (either Ether or an `ERC-20`) via two contracts: `L2BaseToken` & `MsgValueSimulator`.
+Unlike Ethereum, zkEVM does not have any notion of any special native token. That’s why we have to simulate operations with the native token (in which fees are charged) via two contracts: `L2BaseToken` & `MsgValueSimulator`.
 
 `L2BaseToken` is a contract that holds the balances of ETH for the users. This contract does NOT provide ERC20 interface. The only method for transferring Ether is `transferFromTo`. It permits only some system contracts to transfer on behalf of users. This is needed to ensure that the interface is as close to Ethereum as possible, i.e. the only way to transfer ETH is by doing a call to a contract with some `msg.value`. This is what `MsgValueSimulator` system contract is for.
 
