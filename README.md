@@ -53,11 +53,14 @@ As part of this security audit, we are focusing on the changes and updates made 
 
 ## **📁 Sections**
 
-### **1. Smart Contracts Section**
+### **1. Protocol Section**
+
+- **[Protocol overview](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Protocol%20Section/Overview.md)**
+
+### **2. Smart Contracts Section**
 
 Relevant Documentation:
 
-- **[Protocol overview](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Overview.md)**
 - **[L1 smart contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/L1%20smart%20contracts.md)**
 - **[System Contracts/Bootloader Description](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/System%20contracts%20bootloader%20description.md)**
 - **[zkSync Era Fee Model](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md)**
@@ -67,7 +70,7 @@ Relevant Documentation:
 - **[Handling Pubdata in Boojum](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md)**
 - **[Pubdata post EIP-4844](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Pubdata%20Post%204844.md)**
 
-### **2. VM Section**
+### **3. VM Section**
 
 The VM section is related to the zkSync Era Virtual Machine.
 
