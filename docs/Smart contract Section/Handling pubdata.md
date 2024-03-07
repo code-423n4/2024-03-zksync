@@ -253,8 +253,8 @@ Note, that values like `initial_value`, `address` and `key` are not used in the 
 
 **L1**
 
-1. During committing the block, the L1 [verifies](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/facets/Executor.sol#L139) that the operator has provided the full preimage for the totalPubdata (which includes L2→L1 logs, L2→L1 messages, bytecodes as well as the compressed state diffs).
-2. The block commitment [includes](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/facets/Executor.sol#L462) *the hash of the `stateDiffs`. Thus, during ZKP verification will fail if the provided stateDiff hash is not correct.
+1. During committing the block, the L1 verifies that the operator has provided the full preimage for the totalPubdata (which includes L2→L1 logs, L2→L1 messages, bytecodes as well as the compressed state diffs). This process is done differently based on the chosen data availability approach: calldata, blobs or validium. You can read more about it [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Pubdata%20Post%204844.md). 
+2. The block commitment [includes](https://github.com/code-423n4/2024-03-zksync/blob/c369704209623a185c4b62c0f8d67c16a03bf43e/code/contracts/ethereum/contracts/state-transition/chain-deps/facets/Executor.sol#L550) *the hash of the `stateDiffs`. Thus, during ZKP verification will fail if the provided stateDiff hash is not correct.
 
 It is a secure construction because the proof can be verified only if both the execution was correct and the hash of the provided hash of the `stateDiffs` is correct. This means that the L1Messenger indeed received the array of correct `stateDiffs` and, assuming the L1Messenger is working correctly, double-checked that the compression is of the correct format, while L1 contracts on the commit stage double checked that the operator provided the preimage for the compressed state diffs. 
 
