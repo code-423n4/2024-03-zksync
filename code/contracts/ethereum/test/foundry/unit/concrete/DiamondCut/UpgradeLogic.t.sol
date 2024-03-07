@@ -73,7 +73,6 @@ contract UpgradeLogicTest is DiamondCutTest {
         });
 
         InitializeData memory params = InitializeData({
-            // TODO REVIEW
             chainId: 1,
             bridgehub: makeAddr("bridgehub"),
             stateTransitionManager: stateTransitionManager,
@@ -83,16 +82,11 @@ contract UpgradeLogicTest is DiamondCutTest {
             baseToken: makeAddr("baseToken"),
             baseTokenBridge: makeAddr("baseTokenBridge"),
             storedBatchZero: bytes32(0),
-            // genesisBatchHash: 0x02c775f0a90abf7a0e8043f2fdc38f0580ca9f9996a895d05a501bfeaa3b2e21,
-            // genesisIndexRepeatedStorageChanges: 0,
-            // genesisBatchCommitment: bytes32(0),
             verifier: IVerifier(0x03752D8252d67f99888E741E3fB642803B29B155), // verifier
             verifierParams: dummyVerifierParams,
-            // zkPorterIsAvailable: false,
             l2BootloaderBytecodeHash: 0x0100000000000000000000000000000000000000000000000000000000000000,
             l2DefaultAccountBytecodeHash: 0x0100000000000000000000000000000000000000000000000000000000000000,
             priorityTxMaxGasLimit: 500000, // priority tx max L2 gas limit
-            // initialProtocolVersion: 0,
             feeParams: FeeParams({
                 pubdataPricingMode: PubdataPricingMode.Rollup,
                 batchOverheadL1Gas: 1_000_000,

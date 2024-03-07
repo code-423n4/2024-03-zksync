@@ -5,6 +5,9 @@ import {MailboxFacet} from "../../state-transition/chain-deps/facets/Mailbox.sol
 import {FeeParams, PubdataPricingMode} from "../../state-transition/chain-deps/ZkSyncStateTransitionStorage.sol";
 
 contract DummyStateTransition is MailboxFacet {
+    // add this to be excluded from coverage report
+    function test() internal virtual {}
+
     constructor(address bridgeHubAddress) {
         s.bridgehub = bridgeHubAddress;
     }

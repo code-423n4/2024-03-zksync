@@ -7,6 +7,9 @@ import "../../state-transition/StateTransitionManager.sol";
 /// @title DummyExecutor
 /// @notice A test smart contract implementing the IExecutor interface to simulate Executor behavior for testing purposes.
 contract DummyStateTransitionManagerWBH is StateTransitionManager {
+    // add this to be excluded from coverage report
+    function test() internal virtual {}
+
     /// @notice Constructor
     constructor(address bridgeHub) StateTransitionManager(bridgeHub) {}
 
