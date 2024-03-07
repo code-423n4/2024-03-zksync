@@ -42,7 +42,7 @@ This facet responsible for the configuration setup and upgradabity, handling tas
 * Freezability: Executing the freezing/unfreezing of facets within the diamond proxy to safeguard the ecosystem during upgrades or in response to detected vulnerabilities.
 
 Control over the AdminFacet is divided between two main entities:
-- STM (State Transition Manager) - Separate smart contract that can perform critical changes to the system as protocol upgrades. For more detailed information on its function and design, refer to the [Hyperchain section](TODO). Although currently only one version of the STM exists, the architecture allows for future versions to be introduced via subsequent upgrades. Control of the STM is shared between the `Governance.sol` contract and the Admin entity (see details below). In its turn, `Governance.sol` controlled by two multisigs: Admin multisig (see below) and Security council multisig (well-respected contributors in the crypto space). Collaboratively, these entities hold the power to implement instant upgrades, whereas Matter Labs alone is limited to scheduling upgrades with a delay.
+- STM (State Transition Manager) - Separate smart contract that can perform critical changes to the system as protocol upgrades. For more detailed information on its function and design, refer to the [Hyperchain section](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/L1%20ecosystem%20contracts.md#st--stm). Although currently only one version of the STM exists, the architecture allows for future versions to be introduced via subsequent upgrades. Control of the STM is shared between the `Governance.sol` contract and the Admin entity (see details below). In its turn, `Governance.sol` controlled by two multisigs: Admin multisig (see below) and Security council multisig (well-respected contributors in the crypto space). Collaboratively, these entities hold the power to implement instant upgrades, whereas Matter Labs alone is limited to scheduling upgrades with a delay.
 - Admin - Multisig smart contract managed by Matter Labs that can perform non-critical changes to the system such as granting validator permissions. Note, that the Admin is the same multisig as the owner of the governance.
 
 ### MailboxFacet
@@ -99,7 +99,7 @@ burn the funds on L2, allowing the user to reclaim them through the `finalizeWit
 More about L1->L2 operations can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1→L2%20ops%20on%20zkSync.md).
 
 L2 -> L1 communication, in contrast to L1 -> L2 communication, is based only on transferring the information, and not on
-the transaction execution on L1. The full description of the mechanism for sending information from L2 to L1 can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
+the transaction execution on L1. The full description of the mechanism for sending information from L2 to L1 can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata.md).
 
 ### ExecutorFacet
 
