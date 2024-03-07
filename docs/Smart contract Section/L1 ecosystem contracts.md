@@ -258,7 +258,7 @@ The details of how such a proof should look like are out of the scope of this do
 
 ### Initialization in the first release
 
-In the first release however, instead of providing such a proof permissionessly on L1, the ST owner will have to send a message to us, we will double-check that the deployed bytecode is correct and initialized properly. Once it is done, our governance will call the `initializeChainGovernance` function on the `SharedBridge` to make a chain as initialized. (TODO: check with Kalman, maybe change the name of the function)
+In the first release however, instead of providing such a proof permissionessly on L1, the ST owner will have to send a message to us, we will double-check that the deployed bytecode is correct and initialized properly. Once it is done, our governance will call the `initializeChainGovernance` function on the `SharedBridge` to make a chain as initialized.
 
 ## Shared bridge as standard ERC20 bridge
 
@@ -406,8 +406,6 @@ Funds withdrawal is done the same way as it is currently on Era. The only differ
 The user needs to call the `L2SharedBridge.withdraw` function on L2, while providing the token they want to withdraw. This function works both for the wrapped base token and for any standardly bridged ERC20. Note, however, that it is not the way to withdraw base token. To withdraw base token, `L2BaseToken.withdraw` needs to be called.
 
 After the batch with the withdrawal request has been executed, the user can finalize the withdrawal on L1 by calling `L1SharedBridge.finalizeWithdrawal`, where the user provides the proof of the corresponding withdrawal message.  
-
-TODO: double check with Kalman how wrapped withdrawals will work in case of ERC20 base token
 
 # Migration of zkSync Era
 
