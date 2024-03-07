@@ -62,6 +62,7 @@ As part of this security audit, we are focusing on the changes and updates made 
 Relevant Documentation:
 
 - **[L1 smart contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/L1%20smart%20contracts.md)**
+- **[L1 ecosystem contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/L1%20ecosystem%20contracts.md)**
 - **[System Contracts/Bootloader Description](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/System%20contracts%20bootloader%20description.md)**
 - **[zkSync Era Fee Model](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md)**
 - **[Handling L1→L2 Ops on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1→L2%20ops%20on%20zkSync.md)**

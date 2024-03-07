@@ -109,36 +109,41 @@ The intution behind the `requestL2TransactionTwoBridges` is to allow the second 
 
 ## Bridges
 
-Bridges are completely separate contracts from the Bridgehub. They are a wrapper for L1 <-> L2 communication on contracts
-on both L1 and L2. Upon locking assets on one layer, a request is sent to mint these bridged assets on the other layer.
-Upon burning assets on one layer, a request is sent to unlock them on the other. The `SharedBridge` is the current main bridge, that is used to store the base tokens of each participating chain. 
+Bridges are a wrapper for L1 <-> L2 communication on contracts on both L1 and L2/L3. Upon locking assets on one layer, a request is sent to mint these bridged assets on the other layer.
+Upon burning assets on one layer, a request is sent to unlock them on the other. The `SharedBridge` is the current main bridge, that is used to store the base tokens of each participating chain.
+
+> **NOTE**: Previously bridges were completely separate from the Protocol as zkSync Diamond Proxy was managing the ether needed for charging fees, while ERC20 token deposits weren't needed in the core protocol part. However, the hyperchain upgrade introduced custom base token functionality. That means that some hyperchains can utilize ERC20 tokens as a native asset in their chain, so ERC20 depositing became a part of the protocol.
 
 ### L1SharedBridge
 
-The base token of every hyperchain needs to connect to the L1 SharedBridge so that bridging to and from the L2 and other hyperchains can happen seamlessly. It also makes sense to natively support some special tokens (ETH, WETH, etc), and to support some generally accepted token standards (ERC20 tokens), as this makes it easy to bridge those tokens (and ensures a single version of them exists on the hyperchain). These cannonical asset contracts are deployed to L2 from L1 by a bridge shared by all hyperchains. This is where assets are locked on L1. These bridges use the Bridgehub to communicate with all hyperchains. 
+The base token of every hyperchain needs to connect to the L1 SharedBridge so that bridging to and from the L2/L3 and other hyperchains can happen seamlessly. It also makes sense to natively support some special tokens (ETH, WETH, etc), and to support some generally accepted token standards (ERC20 tokens), as this makes it easy to bridge those tokens (and ensures a single version of them exists on the hyperchain). These cannonical asset contracts are deployed to L2 from L1 by a bridge shared by all hyperchains. This is where assets are locked on L1. These bridges use the `Bridgehub` to communicate with all hyperchains. 
 
 The "standard" implementation of the ERC20 token and Ether bridge. Works only with Ether and regular ERC20 tokens, i.e. not with
-fee-on-transfer tokens or other custom logic for handling user balances. It is expected to be called from the `Bridgehub`. 
+fee-on-transfer tokens or other custom logic for handling user balances. It is expected to be called the `Bridgehub`. 
 
 - `bridgehubDepositBaseToken` - called by the `Bridgehub` to deposit base tokens in the bridge.
 - `bridgehubDeposit` - called by the `Bridgehub` in the `requestL2TransactionTwoBridges`, and calldata is provided by the original `msg.sender`. The L2 transaction's `msg.sender` will be the aliased `L1SharedBridge` address.
-- `claimFailedDeposit` - unlock funds if the deposit was initiated but then failed on L2.
-- `finalizeWithdrawal` - unlock funds for the valid withdrawal request from L2.
+- `claimFailedDeposit` - unlock funds if the deposit was initiated but then failed on L2, can be called directly or through legacy `L1Erc20Bridge`.
+- `finalizeWithdrawal` - unlock funds for the valid withdrawal request from L2, which can be called directly or through legacy `L1Erc20Bridge`.
 
-The owner of the L1SharedBridge is the Governance contract.
+The owner of the `L1SharedBridge` is the `Governance.sol` contract.
+
+While `L1SharedBridge` introduces a new way of deposits/withdrawals that are based on the `Bridgehub` routes, the legacy `L1Erc20Bridge` and zkSync Era Diamond Proxy still use the old approach. So `L1SharedBridge` maintains backward compatibility for these cases.
+
+- `depositLegacyErc20Bridge` - Accepts the request for depositing ERC20 tokens from legacy `L1Erc20Bridge` to maintain backward compatibility with zkSync Era.
+- `finalizeWithdrawalLegacyErc20Bridge` - Finalize withdrawals for zkSync Era hyperchain by request from legacy `L1Erc20Bridge`.
+- `claimFailedDepositLegacyErc20Bridge` - Claims failed deposit for zkSync Era hyperchain initialized in the legacy `L1Erc20Bridge`.
 
 ### L2SharedBridge
 
-The L2 counterpart of the L1 ERC20 bridge.
+The L2 counterpart of the `L1Sharedbridge`.
 
 - `withdraw` - initiate a withdrawal by burning funds on the contract and sending a corresponding message to L1.
 - `finalizeDeposit` - finalize the deposit and mint funds on L2. The function is only callable by L1 bridge. 
 
-The owner of the L2ERC20Bridge and the contracts related to it is the Governance contract.
-
 ### L1ERC20Bridge
 
-The legacy bridge used to trasfer tokens to Era only. All the assets will be held in the L1SharedBridge going forward, and this bridge will only make calls to the L1SharedBridge, which is designed to interoperate with this bridge.
+The legacy bridge used to trasfer tokens to Era only. All the assets will be held in the `L1SharedBridge` going forward, and this bridge will only make calls to the `L1SharedBridge`, which is designed to interoperate with this bridge.
 
 - `deposit` - lock funds inside the contract and send a request to mint bridged assets on L2.
 - `claimFailedDeposit` - unlock funds if the deposit was initiated but then failed on L2.
@@ -163,6 +168,21 @@ The diagram below outlines the complete journey from the initiation of an operat
 
 ![governance.png](L1%20smart%20contracts/Governance-scheme.jpg)
 
+### Upgrade mechanism
+
+Currently, there are three types of upgrades for zkSync Era. Normal upgrades (used for new features) are initiated by the Governor (a multisig) and are public for a certain timeframe before they can be applied. Shadow upgrades are similar to normal upgrades, but the data is not known at the moment the upgrade is proposed, but only when executed (they can be executed with the delay, or instantly if approved by the security council). Instant upgrades (used for security issues), on the other hand happen quickly and need to be approved by the Security Council in addition to the Governor. For hyperchains the difference is that upgrades now happen on multiple chains. This is only a problem for shadow upgrades - in this case, the chains have to tightly coordinate to make all the upgrades happen in a short time frame, as the content of the upgrade becomes public once the first chain is upgraded.
+The actual upgrade process is as follows: 
+
+1. Prepare Upgrade for all chains:
+    - The new facets and upgrade contracts have to be deployed,
+    - The upgrade’ calldata (diamondCut, initCalldata with ProposedUpgrade) is hashed on L1 and the hash is saved.
+2. Upgrade specific chain
+    - The upgrade has to be called on the specific chain. The upgrade calldata is passed in as calldata and verified. The protocol version is updated.
+    - Ideally, the upgrade will be very similar for all chains. If it is not, a smart contract can calculate the differences. If this is also not possible, we have to set the `diamondCut` for each chain by hand.
+3. Freeze not upgraded chains
+    - After a certain time the chains that are not upgraded are frozen.
+
+
 ## ValidatorTimelock
 
 An intermediate smart contract between the validator EOA account and the diamon proxy state transition smart contracts.
@@ -183,17 +203,3 @@ to the `proveBatches` function) will be propagated to the zkSync contract. After
 is allowed to call `executeBatches` to propagate the same calldata to zkSync contract. 
 
 The owner of the ValidatorTimelock contract is the same as the owner of the Governance contract - Matter Labs multisig.
-
-### Upgrade mechanism
-
-Currently, there are three types of upgrades for zkSync Era. Normal upgrades (used for new features) are initiated by the Governor (a multisig) and are public for a certain timeframe before they can be applied. Shadow upgrades are similar to normal upgrades, but the data is not known at the moment the upgrade is proposed, but only when executed (they can be executed with the delay, or instantly if approved by the security council). Instant upgrades (used for security issues), on the other hand happen quickly and need to be approved by the Security Council in addition to the Governor. For hyperchains the difference is that upgrades now happen on multiple chains. This is only a problem for shadow upgrades - in this case, the chains have to tightly coordinate to make all the upgrades happen in a short time frame, as the content of the upgrade becomes public once the first chain is upgraded.
-The actual upgrade process is as follows: 
-
-1. Prepare Upgrade for all chains:
-    - The new facets and upgrade contracts have to be deployed,
-    - The upgrade’ calldata (diamondCut, initCalldata with ProposedUpgrade) is hashed on L1 and the hash is saved.
-2. Upgrade specific chain
-    - The upgrade has to be called on the specific chain. The upgrade calldata is passed in as calldata and verified. The protocol version is updated.
-    - Ideally, the upgrade will be very similar for all chains. If it is not, a smart contract can calculate the differences. If this is also not possible, we have to set the `diamondCut` for each chain by hand.
-3. Freeze not upgraded chains
-    - After a certain time the chains that are not upgraded are frozen.
