@@ -280,7 +280,7 @@ The first 8 words are reserved for the batch information provided by the operato
 - `1` word — the hash of the previous batch. Its validation will be explained later on.
 - `2` word — the timestamp of the current batch. Its validation will be explained later on.
 - `3` word — the number of the new batch.
-- `4` word — the L1 gas price provided by the operator.
+- `4` word — the fair pubdata price. More on how our pubdata is calculated can be read [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md#recommended-calculation-of-fair_l2_gas_pricefair_pubdata_price).
 - `5` word — the “fair” price for L2 gas, i.e. the price below which the `baseFee` of the batch should not fall. For now, it is provided by the operator, but it in the future it may become hardcoded.
 - `6` word — the base fee for the batch that is expected by the operator. While the base fee is deterministic, it is still provided to the bootloader just to make sure that the data that the operator has coincides with the data provided by the bootloader.
 - `7` word — reserved word. Unused on proved batch.
@@ -361,9 +361,9 @@ These are memory slots that are used purely for debugging purposes (when the VM 
 
 ### **Result ptr pointer**
 
-- `[927500..928523]`
+- `[927500..937499]`
 
-These are memory slots that are used to track the success status of a transaction. If the transaction with number `i` succeeded, the slot `2^19 - 1024 + i` will be marked as 1 and 0 otherwise.
+These are memory slots that are used to track the success status of a transaction. If the transaction with number `i` succeeded, the slot `937499 - 10000 + i` will be marked as 1 and 0 otherwise.
 
 ## General flow of the bootloader’s execution
 
