@@ -168,31 +168,6 @@ markAsPublished(hash(_bytecode))
 
 zkSync is a statediff-based rollup and so publishing the correct state diffs plays an integral role in ensuring data availability.
 
-## How publishing of storage diffs worked before Boojum
-
-As always in order to understand the new system better, some information about the previous one is important.
-
-Before, the system contracts had no clue about storage diffs. It was the job of the operator to provide the `initialStorageChanges` and `reapeatedStorageWrites` (more on the differences will be explained below). The information to commit the block looked the following way:
-
-```solidity
-struct CommitBlockInfo {
-    uint64 blockNumber;
-    uint64 timestamp;
-    uint64 indexRepeatedStorageChanges;
-    bytes32 newStateRoot;
-    uint256 numberOfLayer1Txs;
-    bytes32 l2LogsTreeRoot;
-    bytes32 priorityOperationsHash;
-    bytes initialStorageChanges;
-    bytes repeatedStorageChanges;
-    bytes l2Logs;
-    bytes[] l2ArbitraryLengthMessages;
-    bytes[] factoryDeps;
-}
-```
-
-These two fields would be then included into the block commitment and checked by the verifier. 
-
 ## Difference between initial and repeated writes.
 
 zkSync publishes state changes that happened within the batch instead of transactions themselves. Meaning, that for instance some storage slot `S` under account `A` has changed to value `V`, we could publish a triple of `A,S,V`. Users by observing all the triples could restore the state of zkSync. However, note that our tree unlike Ethereum’s one is not account based (i.e. there is no first layer of depth 160 of the merkle tree corresponding to accounts and second layer of depth 256 of the merkle tree corresponding to users). Our tree is “flat”, i.e. a slot `S` under account `A` is just stored in the leaf number `H(S,A)`. Our tree is of depth 256 + 8 (the 256 is for these hashed account/key pairs and 8 is for potential shards in the future, we currently have only one shard and it is irrelevant for the rest of the document).
@@ -220,9 +195,9 @@ Note, that the enumeration indexes are assigned in the order of sorted array of 
 
 ## State diffs after Boojum upgrade
 
-Firstly, let’s define what we’ll call the `stateDiffs`. A *state diff* is an element of the following structure.
+Firstly, let’s define what we mean by *state diffs*. A *state diff* is an element of the following structure.
 
-[https://github.com/matter-labs/era-zkevm_test_harness/blob/3cd647aa57fc2e1180bab53f7a3b61ec47502a46/circuit_definitions/src/encodings/state_diff_record.rs#L8](https://github.com/matter-labs/era-zkevm_test_harness/blob/3cd647aa57fc2e1180bab53f7a3b61ec47502a46/circuit_definitions/src/encodings/state_diff_record.rs#L8).
+[State diff structure](https://github.com/matter-labs/era-zkevm_test_harness/blob/3cd647aa57fc2e1180bab53f7a3b61ec47502a46/circuit_definitions/src/encodings/state_diff_record.rs#L8).
 
 Basically, it contains all the values which might interest us about the state diff:
 
@@ -241,9 +216,9 @@ This is the internal structure that is used by the circuits to represent the sta
 - For initial writes, write the pair of  (`derived_key`, `final_value`)
 - For repeated writes write the pair of (`enumeration_index`, `final_value`).
 
-Note, that values like `initial_value`, `address` and `key` are not used in the "simplified" algorithm above, but they will be helpful for the more advanced compression algorithms in the future. The [algorithm](#state-diff-compression-format) for Boojum will already utilize the difference between the `initial_value` and `final_value` for saving up on pubdata.
+Note, that values like `initial_value`, `address` and `key` are not used in the "simplified" algorithm above, but they will be helpful for the more advanced compression algorithms in the future. The [algorithm](#state-diff-compression-format) for Boojum already utilizes the difference between the `initial_value` and `final_value` for saving up on pubdata.
 
-## How the new pubdata verification would work
+## How the new pubdata verification works
 
 **L2**
 
