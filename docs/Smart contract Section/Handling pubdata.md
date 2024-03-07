@@ -52,19 +52,19 @@ To put it shortly, the proofs for L2→L1 log inclusion will continue having exa
 
 ### Implementation of `L1Messenger`
 
-The L1Messenger contract will maintain a rolling hash of all the L2ToL1 logs `chainedLogsHash` as well as the rolling hashes of messages `chainedMessagesHash`. Whenever a contract wants to send an L2→L1 log, the following operation will be [applied](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/L1Messenger.sol#L110):
+The L1Messenger contract will maintain a rolling hash of all the L2ToL1 logs `chainedLogsHash` as well as the rolling hashes of messages `chainedMessagesHash`. Whenever a contract wants to send an L2→L1 log, the following operation will be [applied](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/contracts/L1Messenger.sol#L106):
 
 `chainedLogsHash = keccak256(chainedLogsHash, hashedLog)`. L2→L1 logs have the same 88-byte format as in the current version of zkSync.
 
 Note, that the user is charged for necessary future the computation that will be needed to calculate the final merkle root. It is roughly 4x higher than the cost to calculate the hash of the leaf, since the eventual tree might have be 4x times the number nodes. In any case, this will likely be a relatively negligible part compared to the cost of the pubdata.
 
-At the end of the execution, the bootloader will [provide](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L2470) a list of all the L2ToL1 logs as well as the messages in this block to the L1Messenger (this will be provided by the operator in the memory of the bootloader). The L1Messenger checks that the rolling hash from the provided logs is the same as in the `chainedLogsHash` and calculate the merkle tree of the provided messages. Right now, we always build the Merkle tree of size `2048`, but we charge the user as if the tree was built dynamically based on the number of leaves in there. The implementation of the dynamic tree has been postponed until the later upgrades.
+At the end of the execution, the bootloader will [provide](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/bootloader/bootloader.yul#L2621) a list of all the L2ToL1 logs as well as the messages in this block to the L1Messenger (this will be provided by the operator in the memory of the bootloader). The L1Messenger checks that the rolling hash from the provided logs is the same as in the `chainedLogsHash` and calculate the merkle tree of the provided messages. Right now, we always build the Merkle tree of size `2048`, but we charge the user as if the tree was built dynamically based on the number of leaves in there. The implementation of the dynamic tree has been postponed until the later upgrades.
 
 ### Long L2→L1 messages & bytecodes
 
 Before, the fact that the correct preimages for L2→L1 messages as bytecodes were provided was checked on the L1 side. Now, it will be done on L2.
 
-If the user wants to send an L2→L1 message, its preimage is [appended](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/L1Messenger.sol#L125) to the message’s rolling hash too `chainedMessagesHash = keccak256(chainedMessagesHash, keccak256(message))`.
+If the user wants to send an L2→L1 message, its preimage is [appended](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/contracts/L1Messenger.sol#L122) to the message’s rolling hash too `chainedMessagesHash = keccak256(chainedMessagesHash, keccak256(message))`.
 
 A very similar approach for bytecodes is used, where their rolling hash is calculated and then the preimages are provided at the end of the batch to form the full pubdata for the batch.
 
@@ -82,13 +82,13 @@ The only places where the built-in L2→L1 messaging should continue to be used:
 
 ### Obtaining `txNumberInBlock`
 
-To have the same log format, the `txNumberInBlock` must be obtained. While it is internally counted in the VM, there is currently no opcode to retrieve this number. We will have a public variable `txNumberInBlock` in the `SystemContext`, which will be incremented with each new transaction and retrieve this variable from there. It is [zeroed out](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/SystemContext.sol#L458) at the end of the batch.
+To have the same log format, the `txNumberInBlock` must be obtained. While it is internally counted in the VM, there is currently no opcode to retrieve this number. We will have a public variable `txNumberInBlock` in the `SystemContext`, which will be incremented with each new transaction and retrieve this variable from there. It is [zeroed out](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/contracts/SystemContext.sol#L486) at the end of the batch.
 
 ## Bootloader implementation
 
 The bootloader has a memory segment dedicated to the ABI-encoded data of the L1ToL2Messenger to perform the `publishPubdataAndClearState` call.
 
-At the end of the execution of the batch, the operator should provide the corresponding data into the bootloader memory, i.e user L2→L1 logs, long messages, bytecodes, etc. After that, the [call](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L2484) is performed to the `L1Messenger` system contract, that should validate the adherence of the pubdata to the required format
+At the end of the execution of the batch, the operator should provide the corresponding data into the bootloader memory, i.e user L2→L1 logs, long messages, bytecodes, etc. After that, the [call](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/bootloader/bootloader.yul#L2635) is performed to the `L1Messenger` system contract, that should validate the adherence of the pubdata to the required format
 
 # Bytecode Publishing
 
@@ -100,7 +100,7 @@ With Boojum, `factoryDeps` are included within the `totalPubdata` bytes and have
 
 ## Compressed Bytecode Publishing
 
-This part stays the same in a pre and post boojum zkSync. Unlike uncompressed bytecode which are published as part of `factoryDeps`, compressed bytecodes are published as long l2 → l1 messages which can be seen [here](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/Compressor.sol#L80).
+This part stays the same in a pre and post boojum zkSync. Unlike uncompressed bytecode which are published as part of `factoryDeps`, compressed bytecodes are published as long l2 → l1 messages which can be seen [here](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/contracts/Compressor.sol#L73).
 
 ### Bytecode Compression Algorithm — Server Side
 
@@ -168,31 +168,6 @@ markAsPublished(hash(_bytecode))
 
 zkSync is a statediff-based rollup and so publishing the correct state diffs plays an integral role in ensuring data availability.
 
-## How publishing of storage diffs worked before Boojum
-
-As always in order to understand the new system better, some information about the previous one is important.
-
-Before, the system contracts had no clue about storage diffs. It was the job of the operator to provide the `initialStorageChanges` and `reapeatedStorageWrites` (more on the differences will be explained below). The information to commit the block looked the following way:
-
-```solidity
-struct CommitBlockInfo {
-    uint64 blockNumber;
-    uint64 timestamp;
-    uint64 indexRepeatedStorageChanges;
-    bytes32 newStateRoot;
-    uint256 numberOfLayer1Txs;
-    bytes32 l2LogsTreeRoot;
-    bytes32 priorityOperationsHash;
-    bytes initialStorageChanges;
-    bytes repeatedStorageChanges;
-    bytes l2Logs;
-    bytes[] l2ArbitraryLengthMessages;
-    bytes[] factoryDeps;
-}
-```
-
-These two fields would be then included into the block commitment and checked by the verifier. 
-
 ## Difference between initial and repeated writes.
 
 zkSync publishes state changes that happened within the batch instead of transactions themselves. Meaning, that for instance some storage slot `S` under account `A` has changed to value `V`, we could publish a triple of `A,S,V`. Users by observing all the triples could restore the state of zkSync. However, note that our tree unlike Ethereum’s one is not account based (i.e. there is no first layer of depth 160 of the merkle tree corresponding to accounts and second layer of depth 256 of the merkle tree corresponding to users). Our tree is “flat”, i.e. a slot `S` under account `A` is just stored in the leaf number `H(S,A)`. Our tree is of depth 256 + 8 (the 256 is for these hashed account/key pairs and 8 is for potential shards in the future, we currently have only one shard and it is irrelevant for the rest of the document).
@@ -220,9 +195,9 @@ Note, that the enumeration indexes are assigned in the order of sorted array of 
 
 ## State diffs after Boojum upgrade
 
-Firstly, let’s define what we’ll call the `stateDiffs`. A *state diff* is an element of the following structure.
+Firstly, let’s define what we mean by *state diffs*. A *state diff* is an element of the following structure.
 
-[https://github.com/matter-labs/era-zkevm_test_harness/blob/3cd647aa57fc2e1180bab53f7a3b61ec47502a46/circuit_definitions/src/encodings/state_diff_record.rs#L8](https://github.com/matter-labs/era-zkevm_test_harness/blob/3cd647aa57fc2e1180bab53f7a3b61ec47502a46/circuit_definitions/src/encodings/state_diff_record.rs#L8).
+[State diff structure](https://github.com/matter-labs/era-zkevm_test_harness/blob/3cd647aa57fc2e1180bab53f7a3b61ec47502a46/circuit_definitions/src/encodings/state_diff_record.rs#L8).
 
 Basically, it contains all the values which might interest us about the state diff:
 
@@ -241,9 +216,9 @@ This is the internal structure that is used by the circuits to represent the sta
 - For initial writes, write the pair of  (`derived_key`, `final_value`)
 - For repeated writes write the pair of (`enumeration_index`, `final_value`).
 
-Note, that values like `initial_value`, `address` and `key` are not used in the "simplified" algorithm above, but they will be helpful for the more advanced compression algorithms in the future. The [algorithm](#state-diff-compression-format) for Boojum will already utilize the difference between the `initial_value` and `final_value` for saving up on pubdata.
+Note, that values like `initial_value`, `address` and `key` are not used in the "simplified" algorithm above, but they will be helpful for the more advanced compression algorithms in the future. The [algorithm](#state-diff-compression-format) for Boojum already utilizes the difference between the `initial_value` and `final_value` for saving up on pubdata.
 
-## How the new pubdata verification would work
+## How the new pubdata verification works
 
 **L2**
 
@@ -253,8 +228,8 @@ Note, that values like `initial_value`, `address` and `key` are not used in the 
 
 **L1**
 
-1. During committing the block, the L1 [verifies](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/facets/Executor.sol#L139) that the operator has provided the full preimage for the totalPubdata (which includes L2→L1 logs, L2→L1 messages, bytecodes as well as the compressed state diffs).
-2. The block commitment [includes](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/facets/Executor.sol#L462) *the hash of the `stateDiffs`. Thus, during ZKP verification will fail if the provided stateDiff hash is not correct.
+1. During committing the block, the L1 verifies that the operator has provided the full preimage for the totalPubdata (which includes L2→L1 logs, L2→L1 messages, bytecodes as well as the compressed state diffs). This process is done differently based on the chosen data availability approach: calldata, blobs or validium. You can read more about it [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Pubdata%20Post%204844.md). 
+2. The block commitment [includes](https://github.com/code-423n4/2024-03-zksync/blob/c369704209623a185c4b62c0f8d67c16a03bf43e/code/contracts/ethereum/contracts/state-transition/chain-deps/facets/Executor.sol#L550) *the hash of the `stateDiffs`. Thus, during ZKP verification will fail if the provided stateDiff hash is not correct.
 
 It is a secure construction because the proof can be verified only if both the execution was correct and the hash of the provided hash of the `stateDiffs` is correct. This means that the L1Messenger indeed received the array of correct `stateDiffs` and, assuming the L1Messenger is working correctly, double-checked that the compression is of the correct format, while L1 contracts on the commit stage double checked that the operator provided the preimage for the compressed state diffs. 
 

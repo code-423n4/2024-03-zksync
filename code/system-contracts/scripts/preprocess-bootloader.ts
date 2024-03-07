@@ -60,6 +60,7 @@ const params = {
   RIGHT_PADDED_POST_TRANSACTION_SELECTOR: getPaddedSelector("IPaymaster", "postTransaction"),
   RIGHT_PADDED_SET_TX_ORIGIN: getPaddedSelector("SystemContext", "setTxOrigin"),
   RIGHT_PADDED_SET_GAS_PRICE: getPaddedSelector("SystemContext", "setGasPrice"),
+  RIGHT_PADDED_SET_PUBDATA_INFO: getPaddedSelector("SystemContext", "setPubdataInfo"),
   RIGHT_PADDED_INCREMENT_TX_NUMBER_IN_BLOCK_SELECTOR: getPaddedSelector("SystemContext", "incrementTxNumberInBatch"),
   RIGHT_PADDED_RESET_TX_NUMBER_IN_BLOCK_SELECTOR: getPaddedSelector("SystemContext", "resetTxNumberInBatch"),
   RIGHT_PADDED_SEND_L2_TO_L1_LOG_SELECTOR: getPaddedSelector("L1Messenger", "sendL2ToL1Log"),
@@ -90,7 +91,6 @@ const params = {
   ENSURE_RETURNED_MAGIC: 1,
   FORBID_ZERO_GAS_PER_PUBDATA: 1,
   KECCAK256_EXPECTED_CODE_HASH: getKeccak256ExpectedHash(),
-  PADDED_FORCE_DEPLOY_KECCAK256_SELECTOR: getPaddedSelector("ContractDeployer", "forceDeployKeccak256"),
   // One of "worst case" scenarios for the number of state diffs in a batch is when 260kb of pubdata is spent
   // on repeated writes, that are all zeroed out. In this case, the number of diffs is 260kb / 5 = 52k. This means that they will have
   // accoomdate 14144000 bytes of calldata for the uncompressed state diffs. Adding 260k on top leaves us with

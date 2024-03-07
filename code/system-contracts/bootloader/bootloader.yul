@@ -80,10 +80,10 @@ object "Bootloader" {
                 ret := {{GUARANTEED_PUBDATA_BYTES}}
             }
 
-            /// @dev The maximal gasPerPubdata, which allows users to still be 
-            /// able to send `GUARANTEED_PUBDATA_PER_TX` onchain.
+            /// @dev The maximal allowed gasPerPubdata, we want it multiplied by the u32::MAX 
+            /// (i.e. the maximal possible value of the pubdata counter) to be a safe JS integer with a good enough margin.
             function MAX_L2_GAS_PER_PUBDATA() -> ret {
-                ret := div(MAX_GAS_PER_TRANSACTION(), GUARANTEED_PUBDATA_PER_TX())
+                ret := 1048576
             }
 
             /// @dev The overhead for the interaction with L1.
@@ -435,7 +435,7 @@ object "Bootloader" {
 
             /// @dev The maximum number the VM hooks may accept
             function VM_HOOK_PARAMS() -> ret {
-                ret := 2
+                ret := 3
             }
 
             /// @dev The offset starting from which the parameters for VM hooks are located
@@ -539,6 +539,12 @@ object "Bootloader" {
                 ret := 1000000
             }
 
+            /// @dev The maximal amount of pubdata that can be safely used by a transaction. 
+            /// If a transaction uses more pubdata than this, it will be reverted.
+            function MAX_PUBDATA_FOR_TX() -> ret {
+                ret := 120000
+            }
+
             /// @dev Ceil division of integers
             function ceilDiv(x, y) -> ret {
                 switch or(eq(x, 0), eq(y, 0))
@@ -614,8 +620,6 @@ object "Bootloader" {
                             revertWithReason(UNACCEPTABLE_GAS_PRICE_ERR_CODE(), 0)
                         }
                         
-                        setPricePerPubdataByte(gasPerPubdata)
-
                         <!-- @if BOOTLOADER_TYPE=='proved_batch' -->
                         processL2Tx(txDataOffset, resultPtr, transactionIndex, gasPerPubdata)
                         <!-- @endif -->
@@ -646,40 +650,6 @@ object "Bootloader" {
                             }
                         <!-- @endif -->
                     }
-            }
-
-            /// @dev The function that is temporarily needed to upgrade the Keccak256 precompile. This function and `ContractDeployer:forceDeployKeccak256`
-            /// are to be removed once the upgrade is complete.
-            /// @dev Checks whether the code hash of the Keccak256 precompile contract is correct and updates it if needed.
-            /// @dev When we upgrade to the new version of the Keccak256 precompile contract, the keccak precompile will not work correctly 
-            /// and so the upgrade it should be done before any `keccak` calls. 
-            function upgradeKeccakIfNeeded() {
-                let expectedCodeHash := {{KECCAK256_EXPECTED_CODE_HASH}}
-                
-                let actualCodeHash := getRawCodeHash(KECCAK256_ADDR(), true)
-                if iszero(eq(expectedCodeHash, actualCodeHash)) {
-                    // The `mimicCallOnlyResult` requires that the first word of the data
-                    // contains its length. Here is 36 bytes, i.e. 4 byte selector + 32 byte hash.
-                    mstore(0, 36)
-                    mstore(32, {{PADDED_FORCE_DEPLOY_KECCAK256_SELECTOR}})
-                    mstore(36, expectedCodeHash)
-                    
-                    // We'll use a mimicCall to simulate the correct sender.
-                    let success := mimicCallOnlyResult(
-                        CONTRACT_DEPLOYER_ADDR(),
-                        FORCE_DEPLOYER(), 
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    )
-
-                    if iszero(success) {
-                        assertionError("keccak256 upgrade fail")
-                    }
-                }
             }
 
             /// @notice Returns "raw" code hash of the address. "Raw" means that it returns exactly the value
@@ -736,7 +706,7 @@ object "Bootloader" {
                 ret := keccak256(txDataOffset, dataLength)
             }
 
-            /// @dev The purpose of this function is to make sure that the operator
+            /// @dev The purpose of this function is to make sure the operator
             /// gets paid for the transaction. Note, that the beneficiary of the payment is 
             /// bootloader.
             /// The operator will be paid at the end of the batch.
@@ -756,7 +726,7 @@ object "Bootloader" {
                     payer := from
 
                     // There is no paymaster, the user should pay for the execution.
-                    // Calling for the `payForTransaction` method of the account.
+                    // Calling the `payForTransaction` method of the account.
                     setHook(VM_HOOK_ACCOUNT_VALIDATION_ENTERED())
                     let res := accountPayForTx(from, txDataOffset)
                     setHook(VM_HOOK_NO_VALIDATION_ENTERED())
@@ -946,7 +916,6 @@ object "Bootloader" {
             /// @param transactionIndex The index of the transaction
             /// @param gasPerPubdata The price per pubdata to be used
             /// @param isPriorityOp Whether the transaction is a priority one
-            /// should be stored.
             function processL1Tx(
                 txDataOffset,
                 resultPtr,
@@ -957,10 +926,11 @@ object "Bootloader" {
                 // For L1->L2 transactions we always use the pubdata price provided by the transaction. 
                 // This is needed to ensure DDoS protection. All the excess expenditure 
                 // will be refunded to the user.
-                setPricePerPubdataByte(gasPerPubdata)
 
                 // Skipping the first formal 0x20 byte
                 let innerTxDataOffset := add(txDataOffset, 32)
+
+                let basePubdataSpent := getPubdataCounter()
 
                 let gasLimitForTx, reservedGas := getGasLimitForTx(
                     innerTxDataOffset,
@@ -973,7 +943,7 @@ object "Bootloader" {
                 let gasUsedOnPreparation := 0
                 let canonicalL1TxHash := 0
 
-                canonicalL1TxHash, gasUsedOnPreparation := l1TxPreparation(txDataOffset)
+                canonicalL1TxHash, gasUsedOnPreparation := l1TxPreparation(txDataOffset, gasPerPubdata, basePubdataSpent)
 
                 let refundGas := 0
                 let success := 0
@@ -992,17 +962,37 @@ object "Bootloader" {
                     assertionError("deposited eth too low")
                 }
                 
-                if gt(gasLimitForTx, gasUsedOnPreparation) {
-                    let potentialRefund := 0
+                // In previous steps, there might have been already some pubdata published (e.g. to mark factory dependencies as published). 
+                // However, these actions are mandatory and it is assumed that the L1 Mailbox contract ensured that the provided gas is enough to cover for pubdata.
 
-                    potentialRefund, success := getExecuteL1TxAndGetRefund(txDataOffset, sub(gasLimitForTx, gasUsedOnPreparation))
+                if gt(gasLimitForTx, gasUsedOnPreparation) {
+                    let gasSpentOnExecution := 0
+                    let gasForExecution := sub(gasLimitForTx, gasUsedOnPreparation)
+
+                    gasSpentOnExecution, success := getExecuteL1TxAndNotifyResult(
+                        txDataOffset, 
+                        gasForExecution,
+                        basePubdataSpent,
+                        gasPerPubdata,
+                    )
+
+                    let ergsSpentOnPubdata := getErgsSpentForPubdata(
+                        basePubdataSpent,
+                        gasPerPubdata
+                    )
+
+                    // It is assumed that `isNotEnoughGasForPubdata` ensured that the user did not publish too much pubdata.
+                    let potentialRefund := saturatingSub(
+                        safeAdd(reservedGas, gasForExecution, "safeadd: potentialRefund1"), 
+                        safeAdd(gasSpentOnExecution, ergsSpentOnPubdata, "safeadd: potentialRefund2")
+                    )
 
                     // Asking the operator for refund
-                    askOperatorForRefund(potentialRefund)
+                    askOperatorForRefund(potentialRefund, ergsSpentOnPubdata, gasPerPubdata)
 
                     // In case the operator provided smaller refund than the one calculated
                     // by the bootloader, we return the refund calculated by the bootloader.
-                    refundGas := max(getOperatorRefundForTx(transactionIndex), safeAdd(potentialRefund, reservedGas, "iop"))
+                    refundGas := max(getOperatorRefundForTx(transactionIndex), potentialRefund)
                 }
 
                 if gt(refundGas, gasLimit) {
@@ -1060,7 +1050,12 @@ object "Bootloader" {
                 }   
             }
 
-            function getExecuteL1TxAndGetRefund(txDataOffset, gasForExecution) -> potentialRefund, success {
+            function getExecuteL1TxAndNotifyResult(
+                txDataOffset, 
+                gasForExecution,
+                basePubdataSpent,
+                gasPerPubdata
+            ) -> gasSpentOnExecution, success {
                 debugLog("gasForExecution", gasForExecution)
 
                 let callAbi := getNearCallABI(gasForExecution)
@@ -1071,23 +1066,28 @@ object "Bootloader" {
                 let gasBeforeExecution := gas()
                 success := ZKSYNC_NEAR_CALL_executeL1Tx(
                     callAbi,
-                    txDataOffset
+                    txDataOffset,
+                    basePubdataSpent,
+                    gasPerPubdata
                 )
                 notifyExecutionResult(success)
-                let gasSpentOnExecution := sub(gasBeforeExecution, gas())
-
-                potentialRefund := sub(gasForExecution, gasSpentOnExecution)
-                if gt(gasSpentOnExecution, gasForExecution) {
-                    potentialRefund := 0
-                }
+                gasSpentOnExecution := sub(gasBeforeExecution, gas())
             }
 
             /// @dev The function responsible for doing all the pre-execution operations for L1->L2 transactions.
             /// @param txDataOffset The offset to the transaction's information
+            /// @param gasPerPubdata The price per each pubdata byte in L2 gas
+            /// @param basePubdataSpent The amount of pubdata spent at the start of the transaction
             /// @return canonicalL1TxHash The hash of processed L1->L2 transaction
             /// @return gasUsedOnPreparation The number of L2 gas used in the preparation stage
-            function l1TxPreparation(txDataOffset) -> canonicalL1TxHash, gasUsedOnPreparation {
+            function l1TxPreparation(
+                txDataOffset,
+                gasPerPubdata,
+                basePubdataSpent
+            ) -> canonicalL1TxHash, gasUsedOnPreparation {
                 let innerTxDataOffset := add(txDataOffset, 32)
+
+                setPubdataInfo(gasPerPubdata, basePubdataSpent)
                 
                 let gasBeforePreparation := gas()
                 debugLog("gasBeforePreparation", gasBeforePreparation)
@@ -1151,6 +1151,10 @@ object "Bootloader" {
                 transactionIndex,
                 gasPerPubdata
             ) {
+                let basePubdataSpent := getPubdataCounter()
+
+                debugLog("baseSepnt", basePubdataSpent)
+
                 let innerTxDataOffset := add(txDataOffset, 32)
 
                 // Firsly, we publish all the bytecodes needed. This is needed to be done separately, since
@@ -1171,14 +1175,17 @@ object "Bootloader" {
                 let gasLeft := l2TxValidation(
                     txDataOffset,
                     gasLimitForTx,
-                    gasPrice
+                    gasPrice,
+                    basePubdataSpent,
+                    reservedGas,
+                    gasPerPubdata
                 )
 
                 debugLog("validation finished", 0)
 
                 let gasSpentOnExecute := 0
                 let success := 0
-                success, gasSpentOnExecute := l2TxExecution(txDataOffset, gasLeft)
+                success, gasSpentOnExecute := l2TxExecution(txDataOffset, gasLeft, basePubdataSpent, reservedGas, gasPerPubdata)
 
                 debugLog("execution finished", 0)
 
@@ -1196,16 +1203,16 @@ object "Bootloader" {
                     success,
                     gasToRefund,
                     gasPrice,
-                    reservedGas
+                    reservedGas,
+                    basePubdataSpent,
+                    gasPerPubdata
                 )
-
-                debugLog("refund", 0)
 
                 notifyAboutRefund(refund)
                 mstore(resultPtr, success)
             }
 
-            /// @dev Calculates the L2 gas limit for the transaction's body, i.e. without intrinsic costs and overhead.
+            /// @dev Calculates the L2 gas limit for the transaction
             /// @param innerTxDataOffset The offset for the ABI-encoded Transaction struct fields.
             /// @param transactionIndex The index of the transaction within the batch.
             /// @param gasPerPubdata The price for a pubdata byte in L2 gas.
@@ -1271,7 +1278,10 @@ object "Bootloader" {
             function l2TxValidation(
                 txDataOffset,
                 gasLimitForTx,
-                gasPrice
+                gasPrice,
+                basePubdataSpent,
+                reservedGas,
+                gasPerPubdata
             ) -> gasLeft {
                 let gasBeforeValidate := gas()
 
@@ -1282,6 +1292,8 @@ object "Bootloader" {
 
                 // Appending the transaction's hash to the current L2 block
                 appendTransactionHash(mload(CURRENT_L2_TX_HASHES_BEGIN_BYTE()), false)
+
+                setPubdataInfo(gasPerPubdata, basePubdataSpent)
 
                 checkEnoughGas(gasLimitForTx)
 
@@ -1314,6 +1326,12 @@ object "Bootloader" {
                     revertWithReason(TX_VALIDATION_OUT_OF_GAS(), 0)
                 }
 
+                if isNotEnoughGasForPubdata(
+                    basePubdataSpent, gasLeft, reservedGas, gasPerPubdata
+                ) {
+                    revertWithReason(TX_VALIDATION_OUT_OF_GAS(), 0)
+                }
+
                 setHook(VM_HOOK_VALIDATION_STEP_ENDED())
             }
 
@@ -1325,6 +1343,9 @@ object "Bootloader" {
             function l2TxExecution(
                 txDataOffset,
                 gasLeft,
+                basePubdataSpent,
+                reservedGas,
+                gasPerPubdata
             ) -> success, gasSpentOnExecute {
                 let newCompressedFactoryDepsPointer := 0
                 let gasSpentOnFactoryDeps := 0
@@ -1332,7 +1353,13 @@ object "Bootloader" {
                 if gasLeft {
                     let markingDependenciesABI := getNearCallABI(gasLeft)
                     checkEnoughGas(gasLeft)
-                    newCompressedFactoryDepsPointer := ZKSYNC_NEAR_CALL_markFactoryDepsL2(markingDependenciesABI, txDataOffset)
+                    newCompressedFactoryDepsPointer := ZKSYNC_NEAR_CALL_markFactoryDepsL2(
+                        markingDependenciesABI, 
+                        txDataOffset,
+                        basePubdataSpent,
+                        reservedGas,
+                        gasPerPubdata
+                    )
                     gasSpentOnFactoryDeps := sub(gasBeforeFactoryDeps, gas())
                 }
 
@@ -1361,11 +1388,16 @@ object "Bootloader" {
                     // for this one, we don't care whether or not it fails.
                     success := ZKSYNC_NEAR_CALL_executeL2Tx(
                         executeABI,
-                        txDataOffset
+                        txDataOffset,
+                        basePubdataSpent,
+                        reservedGas,
+                        gasPerPubdata
                     )
 
                     gasSpentOnExecute := add(gasSpentOnFactoryDeps, sub(gasBeforeExecute, gas()))
                 }
+
+                debugLog("notifySuccess", success)
 
                 notifyExecutionResult(success)
             }
@@ -1402,7 +1434,10 @@ object "Bootloader" {
             /// @param txDataOffset The offset to the ABI-encoded Transaction struct.
             function ZKSYNC_NEAR_CALL_executeL2Tx(
                 abi,
-                txDataOffset
+                txDataOffset,
+                basePubdataSpent,
+                reservedGas,
+                gasPerPubdata,
             ) -> success {
                 // Skipping the first word of the ABI-encoding encoding
                 let innerTxDataOffset := add(txDataOffset, 32)
@@ -1419,13 +1454,28 @@ object "Bootloader" {
                 }
 
                 success := executeL2Tx(txDataOffset, from)
+
+                if isNotEnoughGasForPubdata(
+                    basePubdataSpent,
+                    gas(),
+                    reservedGas,
+                    gasPerPubdata
+                ) {
+                    // If not enough gas for pubdata was provided, we revert all the state diffs / messages 
+                    // that caused the pubdata to be published
+                    nearCallPanic()
+                }
+
                 debugLog("Executing L2 ret", success)
             }
 
             /// @dev Sets factory dependencies for an L2 transaction with possible usage of packed bytecodes.
             function ZKSYNC_NEAR_CALL_markFactoryDepsL2(
                 abi,
-                txDataOffset
+                txDataOffset,
+                basePubdataSpent,
+                reservedGas,
+                gasPerPubdata
             ) -> newDataInfoPtr {
                 let innerTxDataOffset := add(txDataOffset, 32)
 
@@ -1462,6 +1512,17 @@ object "Bootloader" {
                 // For bytecodes published in the previous step, no need pubdata will have to be published 
                 markFactoryDepsForTx(innerTxDataOffset, false)
 
+                if isNotEnoughGasForPubdata(
+                    basePubdataSpent,
+                    gas(),
+                    reservedGas,
+                    gasPerPubdata
+                ) {
+                    // If not enough gas for pubdata was provided, we revert all the state diffs / messages 
+                    // that caused the pubdata to be published
+                    nearCallPanic()
+                }
+
                 newDataInfoPtr := dataInfoPtr
             }
 
@@ -1495,7 +1556,9 @@ object "Bootloader" {
                 success, 
                 gasLeft,
                 gasPrice,
-                reservedGas
+                reservedGas,
+                basePubdataSpent,
+                gasPerPubdata
             ) -> finalRefund {
                 setTxOrigin(BOOTLOADER_FORMAL_ADDR())
 
@@ -1525,27 +1588,37 @@ object "Bootloader" {
                             success,
                             // Since the paymaster will be refunded with reservedGas,
                             // it should know about it
-                            safeAdd(gasLeft, reservedGas, "jkl")
+                            safeAdd(gasLeft, reservedGas, "jkl"),
+                            basePubdataSpent,
+                            reservedGas,
+                            gasPerPubdata
                         ))
                         let gasSpentByPostOp := sub(gasBeforePostOp, gas())
 
-                        switch gt(gasLeft, gasSpentByPostOp) 
-                        case 1 { 
-                            gasLeft := sub(gasLeft, gasSpentByPostOp)
-                        }
-                        default {
-                            gasLeft := 0
-                        }
+                        gasLeft := saturatingSub(gasLeft, gasSpentByPostOp)
                     } 
                 }
 
-                askOperatorForRefund(gasLeft)
+                // It was expected that before this point various `isNotEnoughGasForPubdata` methods would ensure that the user 
+                // has enough funds for pubdata. Now, we just subtract the leftovers from the user.
+                let spentOnPubdata := getErgsSpentForPubdata(
+                    basePubdataSpent,
+                    gasPerPubdata
+                )
+
+                let totalRefund := saturatingSub(add(reservedGas, gasLeft), spentOnPubdata)
+
+                askOperatorForRefund(
+                    totalRefund,
+                    spentOnPubdata,
+                    gasPerPubdata
+                )
 
                 let operatorProvidedRefund := getOperatorRefundForTx(transactionIndex)
 
                 // If the operator provides the value that is lower than the one suggested for 
                 // the bootloader, we will use the one calculated by the bootloader.
-                let refundInGas := max(operatorProvidedRefund, add(reservedGas, gasLeft))
+                let refundInGas := max(operatorProvidedRefund, totalRefund)
 
                 // The operator cannot refund more than the gasLimit for the transaction
                 if gt(refundInGas, getGasLimit(innerTxDataOffset)) {
@@ -1626,18 +1699,22 @@ object "Bootloader" {
             /// stores the position of the current bytecodeHash 
             function sendCompressedBytecode(dataInfoPtr, bytecodeHash) -> ret {
                 // Storing the right selector, ensuring that the operator cannot manipulate it
-                mstore(add(dataInfoPtr, 32), {{PUBLISH_COMPRESSED_BYTECODE_SELECTOR}})
+                mstore(safeAdd(dataInfoPtr, 32, "vmt"), {{PUBLISH_COMPRESSED_BYTECODE_SELECTOR}})
 
-                let calldataPtr := add(dataInfoPtr, 60)
-                let afterSelectorPtr := add(calldataPtr, 4)
+                let calldataPtr := safeAdd(dataInfoPtr, 60, "vty")
+                let afterSelectorPtr := safeAdd(calldataPtr, 4, "vtu")
 
-                let originalBytecodeOffset := add(mload(afterSelectorPtr), afterSelectorPtr)
+                let originalBytecodeOffset := safeAdd(mload(afterSelectorPtr), afterSelectorPtr, "vtr")
                 checkOffset(originalBytecodeOffset)
                 let potentialRawCompressedDataOffset := validateBytes(
                     originalBytecodeOffset
                 )
 
-                let rawCompressedDataOffset := add(mload(add(afterSelectorPtr, 32)), afterSelectorPtr)
+                if iszero(eq(originalBytecodeOffset, safeAdd(afterSelectorPtr, 64, "vtp"))) {
+                    assertionError("Compression calldata incorrect")
+                }
+
+                let rawCompressedDataOffset := safeAdd(mload(safeAdd(afterSelectorPtr, 32, "ewq")), afterSelectorPtr, "vbt")
                 checkOffset(rawCompressedDataOffset)
 
                 if iszero(eq(potentialRawCompressedDataOffset, rawCompressedDataOffset)) {
@@ -1650,8 +1727,6 @@ object "Bootloader" {
                 checkOffset(nextAfterCalldata)
 
                 let totalLen := safeSub(nextAfterCalldata, calldataPtr, "xqwf")
-                
-                // Note, that it is safe because the 
                 let success := call(
                     gas(),
                     BYTECODE_COMPRESSOR_ADDR(),
@@ -1662,8 +1737,7 @@ object "Bootloader" {
                     32
                 )
 
-                // If the transaction failed, the most likely reason is that there
-                // was not enough gas. That's why we do the nearCallPanic to stop the near call frame.
+                // If the transaction failed, either there was not enough gas or compression is malformed.
                 if iszero(success) {
                     debugLog("compressor call failed", 0)
                     debugReturndata()
@@ -1717,7 +1791,9 @@ object "Bootloader" {
             /// @param txDataOffset The offset to the ABI-encoded Transaction struct.
             function ZKSYNC_NEAR_CALL_executeL1Tx(
                 abi,
-                txDataOffset
+                txDataOffset,
+                basePubdataSpent,
+                gasPerPubdata,
             ) -> success {
                 // Skipping the first word of the ABI encoding of the struct
                 let innerTxDataOffset := add(txDataOffset, 32)
@@ -1751,6 +1827,20 @@ object "Bootloader" {
                 // If the success is zero, we will revert in order
                 // to revert the minting of ether to the user
                 if iszero(success) {
+                    nearCallPanic()
+                }
+
+                if isNotEnoughGasForPubdata(
+                    basePubdataSpent,
+                    gas(),
+                    // Note, that for L1->L2 transactions the reserved gas is used to protect the operator from
+                    // transactions that might accidentally cause to publish too many pubdata.
+                    // Thus, even if there is some accidental `reservedGas` left, it should not be used to publish pubdata.
+                    0,
+                    gasPerPubdata,
+                ) {
+                    // If not enough gas for pubdata was provided, we revert all the state diffs / messages 
+                    // that caused the pubdata to be published
                     nearCallPanic()
                 }
             }
@@ -2128,7 +2218,16 @@ object "Bootloader" {
             /// @param maxRefundedGas The maximum number of gas the bootloader can be refunded. 
             /// This is the `maximum` number because it does not take into account the number of gas that
             /// can be spent by the paymaster itself.
-            function ZKSYNC_NEAR_CALL_callPostOp(abi, paymaster, txDataOffset, txResult, maxRefundedGas) -> success {
+            function ZKSYNC_NEAR_CALL_callPostOp(
+                abi, 
+                paymaster, 
+                txDataOffset, 
+                txResult, 
+                maxRefundedGas,
+                basePubdataSpent, 
+                gasPerPubdata,
+                reservedGas,
+            ) -> success {
                 // The postOp method has the following signature:
                 // function postTransaction(
                 //     bytes calldata _context,
@@ -2212,6 +2311,17 @@ object "Bootloader" {
                     0,
                     0
                 )
+
+                if isNotEnoughGasForPubdata(
+                    basePubdataSpent,
+                    gas(),
+                    reservedGas,
+                    gasPerPubdata,
+                ) {
+                    // If not enough gas for pubdata was provided, we revert all the state diffs / messages 
+                    // that caused the pubdata to be published
+                    nearCallPanic()
+                }
             }
 
             /// @dev Copies [from..from+len] to [to..to+len]
@@ -2365,9 +2475,6 @@ object "Bootloader" {
                 let value := getValue(innerTxDataOffset)
                 debugLog("value", value)
                 let dataPtr := getDataPtr(innerTxDataOffset)
-                
-                let dataLength := mload(dataPtr)
-                let data := add(dataPtr, 32)
 
                 ret := msgValueSimulatorMimicCall(
                     to,
@@ -2591,9 +2698,52 @@ object "Bootloader" {
                 callSystemContext({{RIGHT_PADDED_INCREMENT_TX_NUMBER_IN_BLOCK_SELECTOR}})
             }
 
-            /// @dev Set the new price per pubdata byte
-            function setPricePerPubdataByte(newPrice) {
-                verbatim_1i_0o("set_pubdata_price", newPrice)
+            function $llvm_NoInline_llvm$_getMeta() -> ret {
+                ret := verbatim_0i_1o("meta")
+            }
+
+            function getPubdataCounter() -> ret {
+                ret := and($llvm_NoInline_llvm$_getMeta(), 0xFFFFFFFF)     
+            }
+
+            function getCurrentPubdataSpent(basePubdataSpent) -> ret {
+                let currentPubdataCounter := getPubdataCounter()
+                debugLog("basePubdata", basePubdataSpent)
+                debugLog("currentPubdata", currentPubdataCounter)
+                ret := sub(currentPubdataCounter, basePubdataSpent)
+                if gt(basePubdataSpent, currentPubdataCounter) {
+                    ret := 0
+                }
+            }
+
+            function getErgsSpentForPubdata(
+                basePubdataSpent,
+                gasPerPubdata,  
+            ) -> ret {
+                ret := safeMul(getCurrentPubdataSpent(basePubdataSpent), gasPerPubdata, "mul: getErgsSpentForPubdata")
+            }
+
+            /// @dev Compares the amount of spent ergs on the pubdatawith the allowed amount.
+            /// @param basePubdataSpent The amount of pubdata spent at the beginning of the transaction.
+            /// @param computeGas The amount of gas spent on the computation.
+            /// @param reservedGas The amount of gas reserved for the pubdata.
+            /// @param gasPerPubdata The price of each byte of pubdata in L2 gas.
+            /// @return ret Whether the amout of pubdata spent so far is valid and 
+            /// and can be covered by the user.
+            function isNotEnoughGasForPubdata(
+                basePubdataSpent,
+                computeGas,
+                reservedGas,
+                gasPerPubdata
+            ) -> ret {
+                let spentErgs := getErgsSpentForPubdata(basePubdataSpent, gasPerPubdata)
+                debugLog("spentErgsPubdata", spentErgs)
+                let allowedGasLimit := add(computeGas, reservedGas)
+                
+                let notEnoughGas := lt(allowedGasLimit, spentErgs)
+                let tooMuchPubdata := gt(getCurrentPubdataSpent(basePubdataSpent), MAX_PUBDATA_FOR_TX())
+
+                ret := or(notEnoughGas, tooMuchPubdata)
             }
 
             /// @dev Set the new value for the tx origin context value
@@ -2613,6 +2763,32 @@ object "Bootloader" {
                 if iszero(success) {
                     debugLog("Failed to set gas price", newGasPrice)
                     nearCallPanic()
+                }
+            }
+
+            /// @dev Sets the gas per pubdata byte value in the `SystemContext` contract. 
+            /// @notice Note that it has not actual impact on the execution of the contract.
+            function setPubdataInfo(
+                newGasPerPubdata,
+                basePubdataSpent
+            ) {
+                mstore(0, {{RIGHT_PADDED_SET_PUBDATA_INFO}})
+                mstore(4, newGasPerPubdata)
+                mstore(36, basePubdataSpent)
+
+                let success := call(
+                    gas(),
+                    SYSTEM_CONTEXT_ADDR(),
+                    0,
+                    0,
+                    68,
+                    0,
+                    0
+                )
+
+                if iszero(success) {
+                    debugLog("setPubdataInfo failed", newGasPerPubdata)
+                    assertionError("setPubdataInfo failed")
                 }
             }
 
@@ -3205,14 +3381,14 @@ object "Bootloader" {
                 ret := lt(x, shl(32,1))
             }
 
-            /// @dev Accepts an uint32 and returns whether or not it is
+            /// @dev Accepts an uint64 and returns whether or not it is
             /// a valid uint64
             function validateUint64(x) -> ret {
                 ret := lt(x, shl(64,1))
             }
 
-            /// @dev Accepts an uint32 and returns whether or not it is
-            /// a valid uint64
+            /// @dev Accepts an uint128 and returns whether or not it is
+            /// a valid uint128
             function validateUint128(x) -> ret {
                 ret := lt(x, shl(128,1))
             }
@@ -3305,6 +3481,16 @@ object "Bootloader" {
                 ret := sub(x, y)
             }
 
+            function saturatingSub(x, y) -> ret {
+                switch gt(x,y)
+                case 0 {
+                    ret := 0
+                } 
+                default {
+                    ret := sub(x,y)
+                }
+            }
+
             ///
             /// Debug utilities
             ///
@@ -3353,8 +3539,14 @@ object "Bootloader" {
             /// into the memory slot (in the out of circuit execution).
             /// Since the slot after the transaction is not touched,
             /// this slot can be used in the in-circuit VM out of box.
-            function askOperatorForRefund(gasLeft) {
-                storeVmHookParam(0, gasLeft)
+            function askOperatorForRefund(
+                proposedRefund, 
+                spentOnPubdata,
+                gasPerPubdataByte
+            ) {
+                storeVmHookParam(0, proposedRefund)
+                storeVmHookParam(1, spentOnPubdata)
+                storeVmHookParam(2, gasPerPubdataByte)
                 setHook(VM_HOOK_ASK_OPERATOR_FOR_REFUND())
             }
             
@@ -3695,11 +3887,6 @@ object "Bootloader" {
                 /// the operator still provides it to make sure that its data is in sync. 
                 let EXPECTED_BASE_FEE := mload(192)
 
-                // When the 1.4.1 VM launches, the old Keccak precompile will stop working. 
-                // Thus, the first thing we need to do before any transaction starts is to upgrade
-                // keccak precompile to the new version.
-                upgradeKeccakIfNeeded()
-
                 validateOperatorProvidedPrices(FAIR_L2_GAS_PRICE, FAIR_PUBDATA_PRICE)
 
 
@@ -3832,9 +4019,6 @@ object "Bootloader" {
                 // Increment tx index within the system.
                 considerNewTx()
             }
-            
-            // The bootloader doesn't have to pay anything
-            setPricePerPubdataByte(0)
 
             // Resetting tx.origin and gasPrice to 0, so we don't pay for
             // publishing them on-chain.

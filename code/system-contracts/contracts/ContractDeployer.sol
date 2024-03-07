@@ -129,7 +129,6 @@ contract ContractDeployer is IContractDeployer, ISystemContract {
     /// @param _salt The CREATE2 salt
     /// @param _bytecodeHash The correctly formatted hash of the bytecode.
     /// @param _input The constructor calldata
-    /// @dev In case of a revert, the zero address should be returned.
     function create2(
         bytes32 _salt,
         bytes32 _bytecodeHash,
@@ -143,7 +142,6 @@ contract ContractDeployer is IContractDeployer, ISystemContract {
     /// @param _input The constructor calldata
     /// @dev This method also accepts nonce as one of its parameters.
     /// It is not used anywhere and it needed simply for the consistency for the compiler
-    /// @dev In case of a revert, the zero address should be returned.
     /// Note: this method may be callable only in system mode,
     /// that is checked in the `createAccount` by `onlySystemCall` modifier.
     function create(
@@ -159,7 +157,6 @@ contract ContractDeployer is IContractDeployer, ISystemContract {
     /// @param _bytecodeHash The correctly formatted hash of the bytecode.
     /// @param _input The constructor calldata.
     /// @param _aaVersion The account abstraction version to use.
-    /// @dev In case of a revert, the zero address should be returned.
     /// Note: this method may be callable only in system mode,
     /// that is checked in the `createAccount` by `onlySystemCall` modifier.
     function create2Account(
@@ -182,7 +179,6 @@ contract ContractDeployer is IContractDeployer, ISystemContract {
     /// @param _aaVersion The account abstraction version to use.
     /// @dev This method also accepts salt as one of its parameters.
     /// It is not used anywhere and it needed simply for the consistency for the compiler
-    /// @dev In case of a revert, the zero address should be returned.
     function createAccount(
         bytes32, // salt
         bytes32 _bytecodeHash,
@@ -233,24 +229,6 @@ contract ContractDeployer is IContractDeployer, ISystemContract {
             _deployment.input,
             false,
             _deployment.callConstructor
-        );
-    }
-
-    /// @notice The method that is temporarily needed to upgrade the Keccak256 precompile. This function and `Bootloader:upgradeKeccakIfNeeded`
-    /// are to be removed once the upgrade is complete. Unlike a normal forced deployment, it does not update account information as it requires
-    /// updating a mapping, and so requires Keccak256 precompile to work already.
-    /// @dev This method expects the sender (FORCE_DEPLOYER) to provide the correct bytecode hash for the Keccak256
-    /// precompile.
-    function forceDeployKeccak256(bytes32 _keccak256BytecodeHash) external payable onlyCallFrom(FORCE_DEPLOYER) {
-        _ensureBytecodeIsKnown(_keccak256BytecodeHash);
-
-        _constructContract(
-            msg.sender,
-            address(KECCAK256_SYSTEM_CONTRACT),
-            _keccak256BytecodeHash,
-            msg.data[0:0],
-            false,
-            false
         );
     }
 

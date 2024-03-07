@@ -15,7 +15,7 @@ Please read the full [article](https://github.com/code-423n4/2024-03-zksync/blob
 
 A new priority operation can be appended by calling the [requestL2TransactionDirect](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/bridgehub/Bridgehub.sol#L197) or [requestL2TransactionTwoBridges](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/bridgehub/Bridgehub.sol#L242) methods on `BridgeHub` smart contract. `BridgeHub` will forward funds to the `SharedBridge` and send transaction request to the specified state transition contract (selected by the chainID). State transition contract will perform several checks for the transaction, making sure that it is processable and provides enough fee to compensate the operator for this transaction. Then, this transaction will be [appended](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/state-transition/chain-deps/facets/Mailbox.sol#L346) to the priority queue.
 
-TODO: describes the differences between `requestL2TransactionDirect` and `requestL2TransactionTwoBridges`.
+The difference between `requestL2TransactionDirect` and `requestL2TransactionTwoBridges` is that the `msg.sender` on the L2 Transaction is the second bridge in the `requestL2TransactionTwoBridges` case, while it is the `msg.sender` of the `requestL2TransactionDirect` in the first case. For more details read the [L1 ecosystem contracts](./L1%20ecosystem%20contracts.md)
 
 ## Bootloader
 
