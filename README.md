@@ -373,17 +373,37 @@ rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03
 rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03-zksync.git && cd 2024-03-zksync/code/contracts/ethereum && yarn --ignore-engines && yarn test
 ```
 
-## (Hardhat) L2 System contracts one liner
+## (Hardhat) L2 System contracts
 
+Run the test-node from the `code/system-contracts` in the first terminal:
 ```
-rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03-zksync.git && cd 2024-03-zksync/code/system-contracts/scripts && yarn --ignore-engines && bash quick-setup.sh
+yarn # if first time
+yarn test-node
 ```
 
-## (Hardhat) L2 contracts one liner
+Then run the tests in the second:
+```
+yarn test
+```
 
+> :warning: You should rerun the test-node for every tests run
+
+## (Hardhat) L2 contracts
+
+Run the test-node from the `code/system-contracts` in the first terminal:
 ```
-rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03-zksync.git && cd 2024-03-zksync/code/contracts/zksync/scripts && yarn --ignore-engines && bash quick-setup.sh
+yarn # if first time
+yarn test-node
 ```
+
+Then run the tests from the `code/contracts/zksync` in the second:
+```
+yarn # if first time
+yarn test
+```
+
+> :warning: You should rerun the test-node for every tests run
+
 ## Miscellaneous
 
 Employees of zkSync and employees' family members are ineligible to participate in this audit.
