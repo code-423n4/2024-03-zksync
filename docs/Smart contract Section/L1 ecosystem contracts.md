@@ -156,7 +156,7 @@ BridgeHub will check that the STM as well as the base token are whitelisted and 
 
 In the future, ST creation will be permissionless. A securely random `chainId` will be generated for each chain to be registered. However, generating 32-byte chainId is not feasible with the current SDK expectations on EVM and so for now chainId is of type `uint48`. And so it has to be chosen by the governance of `BridgeHub`. Also, for the first release we would want to avoid chains being able to choose their own initialization parameter to prevent possible malicious input.
 
-For this reason, there will be an entity called `admin`  which is basically a hot key managed by us and it will be used to deploy new STs. 
+For this reason, there will be an entity called `admin` which is basically a hot key managed by us and it will be used to deploy new STs. 
 
 So the flow for deploying their own ST for users will be the following:
 

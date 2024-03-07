@@ -109,8 +109,8 @@ For any clarifications, doubts, or discussion, please contact Code4rena staff, a
 | Contract | SLOC | Libraries used |
 | --- | --- | --- |
 | [contracts/ethereum/contracts/bridge/L1ERC20Bridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/bridge/L1ERC20Bridge.sol) | 119 | @openzeppelin |
-| [contracts/ethereum/contracts/bridge/L1SharedBridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/bridge/L1SharedBridge.sol) | 442 | @openzeppelin |
-| [contracts/ethereum/contracts/bridgehub/Bridgehub.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/bridgehub/Bridgehub.sol) | 234 | @openzeppelin |
+| [contracts/ethereum/contracts/bridge/L1SharedBridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/bridge/L1SharedBridge.sol) | 448 | @openzeppelin |
+| [contracts/ethereum/contracts/bridgehub/Bridgehub.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/ethereum/contracts/bridgehub/Bridgehub.sol) | 246 | @openzeppelin |
 
 ### Governance
 
@@ -219,6 +219,7 @@ For any clarifications, doubts, or discussion, please contact Code4rena staff, a
 | [system-contracts/contracts/NonceHolder.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/NonceHolder.sol) | 102 |  |
 | [system-contracts/contracts/PubdataChunkPublisher.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/PubdataChunkPublisher.sol) | 37 |  |
 | [system-contracts/contracts/SystemContext.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/SystemContext.sol) | 242 |  |
+| [contracts/GasBoundCaller.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/GasBoundCaller.sol) | 33 |  |
 
 ### Precompiles
 
@@ -229,6 +230,9 @@ For any clarifications, doubts, or discussion, please contact Code4rena staff, a
 | [system-contracts/contracts/precompiles/Ecrecover.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/precompiles/Ecrecover.yul) | 68 |  |
 | [system-contracts/contracts/precompiles/Keccak256.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/precompiles/Keccak256.yul) | 67 |  |
 | [system-contracts/contracts/precompiles/SHA256.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/precompiles/SHA256.yul) | 65 |  |
+| [contracts/precompiles/CodeOracle.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/precompiles/CodeOracle.yul) | 66 |  |
+| [contracts/precompiles/P256Verify.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/precompiles/P256Verify.yul) | 68 |  |
+
 
 ### Libraries
 
