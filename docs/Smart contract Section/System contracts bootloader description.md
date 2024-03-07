@@ -361,7 +361,7 @@ These are memory slots that are used purely for debugging purposes (when the VM 
 
 ### **Result ptr pointer**
 
-- [927500..928523]
+- `[927500..928523]`
 
 These are memory slots that are used to track the success status of a transaction. If the transaction with number `i` succeeded, the slot `2^19 - 1024 + i` will be marked as 1 and 0 otherwise.
 
@@ -477,21 +477,19 @@ For these contracts, we insert the `EmptyContract` code upon genesis. It is basi
 
 Note that, unlike Ethereum, keccak256 is a precompile (*not an opcode*) on zkSync.
 
-These system contracts act as wrappers for their respective crypto precompile implementations. They are expected to be used frequently, especially keccak256, since Solidity computes storage slots for mapping and dynamic arrays with its help. That's why we wrote contracts on pure yul with optimizing the short input case.
+These system contracts act as wrappers for their respective crypto precompile implementations. They are expected to be used frequently, especially keccak256, since Solidity computes storage slots for mapping and dynamic arrays with its help. That's why we wrote contracts on pure yul with optimizing the short input case. In the past both `sha256` and `keccak256` performed padding within the smart contracts, this is no longer true with `sha256` performing padding in the smart contracts and `keccak256` in the zk-circuits. Hashing is then completed for both within the zk-circuits.
 
-The system contracts accept the input and transform it into the format that the zk-circuit expects. This way, some of the work is shifted from the crypto to smart contracts, which are easier to audit and maintain.
-
-Both contracts should apply padding to the input according to their respective specifications, and then make a precompile call with the padded data. All other hashing work will be done in the zk-circuit. It's important to note that the crypto part of the precompiles expects to work with padded data. This means that a bug in applying padding may lead to an unprovable transaction.
+It's important to note that the crypto part of the `sha256` precompile expects to work with padded data. This means that a bug in applying padding may lead to an unprovable transaction.
 
 ## EcAdd & EcMul
 
 These precompiles simulate the behaviour of the EVM's EcAdd and EcMul precompiles and are fully implemented in Yul without circuit counterparts. You can read more about them [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Elliptic%20curve%20precompiles.md).
 
-## L2EthToken & MsgValueSimulator
+## L2BaseToken & MsgValueSimulator
 
-Unlike Ethereum, zkEVM does not have any notion of any special native token. That’s why we have to simulate operations with Ether via two contracts: `L2EthToken` & `MsgValueSimulator`.
+Unlike Ethereum, zkEVM does not have any notion of any special native token. That’s why we have to simulate operations with the native token (in which fees are charged) via two contracts: `L2BaseToken` & `MsgValueSimulator`.
 
-`L2EthToken` is a contract that holds the balances of ETH for the users. This contract does NOT provide ERC20 interface. The only method for transferring Ether is `transferFromTo`. It permits only some system contracts to transfer on behalf of users. This is needed to ensure that the interface is as close to Ethereum as possible, i.e. the only way to transfer ETH is by doing a call to a contract with some `msg.value`. This is what `MsgValueSimulator` system contract is for.
+`L2BaseToken` is a contract that holds the balances of native token for the users. This contract does NOT provide ERC20 interface. The only method for transferring native token is `transferFromTo`. It permits only some system contracts to transfer on behalf of users. This is needed to ensure that the interface is as close to Ethereum as possible, i.e. the only way to transfer native token is by doing a call to a contract with some `msg.value`. This is what `MsgValueSimulator` system contract is for.
 
 Whenever anyone wants to do a non-zero value call, they need to call `MsgValueSimulator` with:
 
@@ -613,6 +611,10 @@ One of the most expensive resource for a rollup is data availability, so in orde
 - We compress state diffs.
 
 This contract contains utility methods that are used to verify the correctness of either bytecode or state diff compression. You can read more on how we compress state diffs and bytecodes in the corresponding [document](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
+
+## Pubdata Chunk Publisher
+
+This contract is responsible for separating pubdata into chunks that each fit into a [4844 blob](./Pubdata%20Post%204844.md) and calculating the hash of the preimage of said blob. If a chunk's size is less than the total number of bytes for a blob, we pad it on the right with zeroes as the circuits will require that the chunk is of exact size. The hash is then sent to L1 via system logs and used as part of the batch commitment. One important thing to note is that regardless of the size of the pubdata, we will always send the two system logs. The value of the hash of the empty blob will then be `bytes32(0)`.
 
 ## CodeOracle
 
