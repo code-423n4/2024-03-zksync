@@ -270,7 +270,7 @@ For any clarifications, doubts, or discussion, please contact Code4rena staff, a
 | ----------- | ----------- | ----------- |
 | [contracts/zksync/contracts/bridge/L2SharedBridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/zksync/contracts/bridge/L2SharedBridge.sol) | 103 | @openzeppelin |
 | [contracts/zksync/contracts/bridge/L2StandardERC20.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/zksync/contracts/bridge/L2StandardERC20.sol) | 97 | @openzeppelin |
-| [contracts/zksync/contracts/bridge/L2WrappedBaseToken.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/zksync/contracts/bridge/L2WrappedBaseToken.sol) | 55 | @openzeppelin |
+| [contracts/zksync/contracts/bridge/L2WETH.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/zksync/contracts/bridge/L2WETH.sol) | 55 | @openzeppelin |
 
 
 ### Bridge interfaces
@@ -281,7 +281,7 @@ For any clarifications, doubts, or discussion, please contact Code4rena staff, a
 | [contracts/zksync/contracts/bridge/interfaces/IL1SharedBridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/zksync/contracts/bridge/interfaces/IL1SharedBridge.sol) | 11 |  |
 | [contracts/zksync/contracts/bridge/interfaces/IL2SharedBridge.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/zksync/contracts/bridge/interfaces/IL2SharedBridge.sol) | 27 |  |
 | [contracts/zksync/contracts/bridge/interfaces/IL2StandardToken.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/zksync/contracts/bridge/interfaces/IL2StandardToken.sol) | 10 |  |
-| [contracts/zksync/contracts/bridge/interfaces/IL2WrappedBaseToken.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/zksync/contracts/bridge/interfaces/IL2WrappedBaseToken.sol) | 8 |  |
+| [contracts/zksync/contracts/bridge/interfaces/IL2WETH.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/zksync/contracts/bridge/interfaces/IL2WETH.sol) | 8 |  |
 | [contracts/zksync/contracts/interfaces/IPaymaster.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/zksync/contracts/interfaces/IPaymaster.sol) | 22 |  |
 | [contracts/zksync/contracts/interfaces/IPaymasterFlow.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/contracts/zksync/contracts/interfaces/IPaymasterFlow.sol) | 13 |  |
 

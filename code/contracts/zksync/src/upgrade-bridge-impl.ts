@@ -13,7 +13,7 @@ import { getAddressFromEnv, getNumberFromEnv } from "../../l1-contracts/src.ts/u
 import { Deployer } from "../../l1-contracts/src.ts/deploy";
 import { awaitPriorityOps, computeL2Create2Address, create2DeployFromL1, getL1TxInfo } from "./utils";
 
-const SupportedL2Contracts = ["L2SharedBridge", "L2StandardERC20", "L2WrappedBaseToken"] as const;
+const SupportedL2Contracts = ["L2SharedBridge", "L2StandardERC20", "L2WETH"] as const;
 
 // For L1 contracts we can not read bytecodes, but we can still produce the upgrade calldata
 const SupportedL1Contracts = ["L1ERC20Bridge"] as const;
@@ -145,9 +145,9 @@ async function getTxInfo(
 ) {
   if (contract === "L2SharedBridge") {
     return getTransparentProxyUpgradeTxInfo(deployer, target, l2SharedBridgeProxyAddress, refundRecipient, gasPrice);
-  } else if (contract == "L2WrappedBaseToken") {
+  } else if (contract == "L2WETH") {
     throw new Error(
-      "The latest L2WrappedBaseToken implementation requires L2SharedBridge to be deployed in order to be correctly initialized, which is not the case on the majority of networks. Remove this error once the bridge is deployed."
+      "The latest L2WETH implementation requires L2SharedBridge to be deployed in order to be correctly initialized, which is not the case on the majority of networks. Remove this error once the bridge is deployed."
     );
   } else if (contract == "L2StandardERC20") {
     if (!l2ProxyAddress) {

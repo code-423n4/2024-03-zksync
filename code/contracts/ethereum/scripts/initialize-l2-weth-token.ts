@@ -30,7 +30,7 @@ function readInterface(path: string, fileName: string, solFileName?: string) {
 }
 
 const DEPLOY_L2_BRIDGE_COUNTERPART_GAS_LIMIT = getNumberFromEnv("CONTRACTS_DEPLOY_L2_BRIDGE_COUNTERPART_GAS_LIMIT");
-const L2_WETH_INTERFACE = readInterface(l2BridgeArtifactsPath, "L2WrappedBaseToken");
+const L2_WETH_INTERFACE = readInterface(l2BridgeArtifactsPath, "L2WETH");
 const TRANSPARENT_UPGRADEABLE_PROXY = readInterface(
   openzeppelinTransparentProxyArtifactsPath,
   "ITransparentUpgradeableProxy",

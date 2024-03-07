@@ -3,10 +3,10 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 import * as hre from "hardhat";
 import { Provider, Wallet } from "zksync-web3";
-import type { L2WrappedBaseToken } from "../typechain/L2WrappedBaseToken";
+import type { L2WETH } from "../typechain/L2WETH";
 import type { L2SharedBridge } from "../typechain/L2SharedBridge";
 import { L2SharedBridgeFactory } from "../typechain/L2SharedBridgeFactory";
-import { L2WrappedBaseTokenFactory } from "../typechain/L2WrappedBaseTokenFactory";
+import { L2WETHFactory } from "../typechain/L2WETHFactory";
 
 const richAccount = {
   address: "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049",
@@ -18,12 +18,12 @@ const eth18 = ethers.utils.parseEther("18");
 describe("WETH token & WETH bridge", function () {
   const provider = new Provider(hre.config.networks.localhost.url);
   const wallet = new Wallet(richAccount.privateKey, provider);
-  let wethToken: L2WrappedBaseToken;
+  let wethToken: L2WETH;
   let wethBridge: L2SharedBridge;
 
   before("Deploy token and bridge", async function () {
     const deployer = new Deployer(hre, wallet);
-    const wethTokenImpl = await deployer.deploy(await deployer.loadArtifact("L2WrappedBaseToken"));
+    const wethTokenImpl = await deployer.deploy(await deployer.loadArtifact("L2WETH"));
     const wethBridgeImpl = await deployer.deploy(await deployer.loadArtifact("L2SharedBridge"));
     const randomAddress = ethers.utils.hexlify(ethers.utils.randomBytes(20));
 
@@ -38,7 +38,7 @@ describe("WETH token & WETH bridge", function () {
       "0x",
     ]);
 
-    wethToken = L2WrappedBaseTokenFactory.connect(wethTokenProxy.address, wallet);
+    wethToken = L2WETHFactory.connect(wethTokenProxy.address, wallet);
     wethBridge = L2SharedBridgeFactory.connect(wethBridgeProxy.address, wallet);
 
     // await wethToken.initialize();
