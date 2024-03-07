@@ -8,7 +8,7 @@ On standard Ethereum clients, the workflow for executing blocks is the following
 2. Gather the state changes (if the transaction has not reverted), apply them to the state.
 3. Go back to step (1) if the block gas limit has not been yet exceeded.
 
-However, having such flow on zkSync (i.e. processing transaction one-by-one) would be too inefficient, since we have to run the entire proving workflow for each individual transaction. That’s what we need the *bootloader* for: instead of running N transactions separately, we run the entire batch (set of blocks, more can be found [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20%26%20L2%20blocks%20on%20zkSync.md)) as a single program that accepts the array of transactions as well as some other batch metadata and processes them inside a single big “transaction”. The easiest way to think about bootloader is to think in terms of EntryPoint from EIP4337: it also accepts the array of transactions and facilitates the Account Abstraction protocol.
+However, having such flow on zkSync (i.e. processing transaction one-by-one) would be too inefficient, since we have to run the entire proving workflow for each individual transaction. That’s what we need the *bootloader* for: instead of running N transactions separately, we run the entire batch (set of blocks, more can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20%26%20L2%20blocks%20on%20zkSync.md)) as a single program that accepts the array of transactions as well as some other batch metadata and processes them inside a single big “transaction”. The easiest way to think about bootloader is to think in terms of EntryPoint from EIP4337: it also accepts the array of transactions and facilitates the Account Abstraction protocol.
 
 The hash of the code of the bootloader is stored on L1 and can only be changed as a part of a system upgrade. Note, that unlike system contracts, the bootloader’s code is not stored anywhere on L2. That’s why we may sometimes refer to the bootloader’s address as formal. It only exists for the sake of providing some value to `this` / `msg.sender`/etc. When someone calls the bootloader address (e.g. to pay fees) the EmptyContract’s code is actually invoked.
 
@@ -114,7 +114,7 @@ These opcodes are allowed only for contracts in kernel space (i.e. system contr
 
 Note, that currently we do not have access to the `tx_counter` within VM (i.e. for now it is possible to increment it and it will be automatically used for logs such as `event`s as well as system logs produced by `to_l1`, but we can not read it). We need to read it to publish the *user* L2→L1 logs, so `increment_tx_counter` is always accompanied by the corresponding call to the [SystemContext](#systemcontext) contract.
 
-More on the difference between system and user logs can be read [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
+More on the difference between system and user logs can be read [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
 
 ### **Generally accessible**
 
@@ -134,7 +134,7 @@ Besides the calldata, it is also possible to provide additional information to t
 - *r2* — the pointer with flags of the call. This is a mask, where each bit is set only if certain flags have been set to the call. Currently, two flags are supported: 0-th bit: `isConstructor` flag. This flag can only be set by system contracts and denotes whether the account should execute its constructor logic. Note, unlike Ethereum, there is no separation on constructor & deployment bytecode. More on that can be read [here](#contractdeployer--immutablesimulator). 1-st bit: `isSystem` flag. Whether the call intends a system contracts’ function. While most of the system contracts’ functions are relatively harmless, accessing some with calldata only may break the invariants of Ethereum, e.g. if the system contract uses `mimic_call`: no one expects that by calling a contract some operations may be done out of the name of the caller. This flag can be only set if the callee is in kernel space.
 - The rest r3..r12 registers are non-empty only if the `isSystem` flag is set. There may be arbitrary values passed, which we call `extraAbiParams`.
 
-The compiler implementation is that these flags are remembered by the contract and can be accessed later during execution via special [simulations](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions/extensions/overview.md).
+The compiler implementation is that these flags are remembered by the contract and can be accessed later during execution via special [simulations](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions/extensions/overview.md).
 
 If the caller provides inappropriate flags (i.e. tries to set `isSystem` flag when callee is not in the kernel space), the flags are ignored.
 
@@ -161,9 +161,9 @@ function getCodeAddress() internal view returns (address addr) {
 
 In the example above, the compiler will detect that the static call is done to the constant `CODE_ADDRESS_CALL_ADDRESS` and so it will replace it with the opcode for getting the code address of the current execution.
 
-Full list of opcode simulations can be found [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions/extensions/call.md).
+Full list of opcode simulations can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions/extensions/call.md).
 
-We also use [verbatim-like](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions/extensions/verbatim.md) statements to access zkSync-specific opcodes in the bootloader.
+We also use [verbatim-like](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions/extensions/verbatim.md) statements to access zkSync-specific opcodes in the bootloader.
 
 All the usages of the simulations in our Solidity code are implemented in the [SystemContractHelper](https://github.com/code-423n4/2023-10-zksync/blob/main/code/system-contracts/contracts/libraries/SystemContractHelper.sol) library and the [SystemContractsCaller](https://github.com/code-423n4/2023-10-zksync/blob/main/code/system-contracts/contracts/libraries/SystemContractsCaller.sol) library.
 
@@ -264,7 +264,7 @@ The exact type of the transaction is marked by the `txType` field of the transac
 - `txType`: 254. It is a transaction type that is used for upgrading the L2 system. This is the only type of transaction is allowed to start a transaction out of the name of the contracts in kernel space.
 - `txType`: 255. It is a transaction that comes from L1. There are almost no restrictions explicitly imposed upon this type of transaction, since the bootloader at the end of its execution sends the rolling hash of the executed priority transactions. The L1 contract ensures that the hash did indeed match the [hashes of the priority transactions on L1](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/zksync/facets/Executor.sol#L282).
 
-You can also read more on L1->L2 transactions and upgrade transacitons [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
+You can also read more on L1->L2 transactions and upgrade transacitons [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
 
 However, as already stated, the bootloader’s memory is not deterministic and the operator is free to put anything it wants there. For all of the transaction types above the restrictions are imposed in the following ([method](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L2828)), which is called before starting processing the transaction.
 
@@ -293,36 +293,36 @@ The batch information slots [are used at the beginning of the batch](https://git
 - `[40..72]` – slots for holding the paymaster context data for the current transaction. The role of the paymaster context is similar to the [EIP4337](https://eips.ethereum.org/EIPS/eip-4337)’s one. You can read more about it in the account abstraction documentation.
 - `[73..74]` – slots for signed and explorer transaction hash of the currently processed L2 transaction.
 - `[75..110]` – 36 slots for the calldata for the KnownCodesContract call.
-- `[111..1134]` – 1024 slots for the refunds for the transactions.
-- `[1135..2158]` – 1024 slots for the overhead for batch for the transactions. This overhead is suggested by the operator, i.e. the bootloader will still double-check that the operator does not overcharge the user.
-- `[2159..3182]` – slots for the “trusted” gas limits by the operator. The user’s transaction will have at its disposal `min(MAX_TX_GAS(), trustedGasLimit)`, where `MAX_TX_GAS` is a constant guaranteed by the system. Currently, it is equal to 80 million gas. In the future, this feature will be removed. 
-- `[3183..7282]` – slots for storing L2 block info for each transaction. You can read more on the difference L2 blocks and batches [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md).
-- `[7283..40050]` – slots used for compressed bytecodes each in the following format:
+- `[111..10110]` – 10000 slots for the refunds for the transactions.
+- `[10111..20110]` – 10000 slots for the overhead for batch for the transactions. This overhead is suggested by the operator, i.e. the bootloader will still double-check that the operator does not overcharge the user.
+- `[20111..30110]` – slots for the “trusted” gas limits by the operator. The user’s transaction will have at its disposal `min(MAX_TX_GAS(), trustedGasLimit)`, where `MAX_TX_GAS` is a constant guaranteed by the system. Currently, it is equal to 80 million gas. In the future, this feature will be removed. 
+- `[30111..70114]` – slots for storing L2 block info for each transaction. You can read more on the difference L2 blocks and batches [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md).
+- `[70115..135650]` – slots used for compressed bytecodes each in the following format:
     - 32 bytecode hash
     - 32 zeroes (but then it will be modified by the bootloader to contain 28 zeroes and then the 4-byte selector of the `publishCompressedBytecode` function of the `BytecodeCompresor`)
     - The calldata to the bytecode compressor (without the selector). 
-- `[40051..40052]` – slots where the hash and the number of current priority ops is stored. More on it in the priority operations [section](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
+- `[135651..135652]` – slots where the hash and the number of current priority ops is stored. More on it in the priority operations [section](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
 
 ### L1Messenger Pubdata
 
-- `[40053..248052]` – slots where the final batch pubdata is supplied to be verified by the L1Messenger. More on how the L1Messenger system contracts handles the pubdata can be read [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
+- `[135653..586652]` – slots where the final batch pubdata is supplied to be verified by the L1Messenger. More on how the L1Messenger system contracts handles the pubdata can be read [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
 
 But briefly, this space is used for the calldata to the L1Messenger’s `publishPubdataAndClearState` function, which accepts the list of the user L2→L1 logs, published L2→L1 messages as well as bytecodes. It also takes the list of full state diff entries, which describe how each storage slot has changed as well as compressed state diffs. This method will then check the correctness of the provided data and publish the hash of the correct pubdata to L1.
 
-Note, that while the realistic number of pubdata that can be published in a batch is 120kb, the size of the calldata to L1Messenger may be a lot larger due to the fact that this method also accepts the original uncompressed state diff entries. These will not be published to L1, but will be used to verify the correctness of the compression. The worst-case number of bytes that may be needed for this scratch space is if all the pubdata consists of repeated writes (i.e. we’ll need only 4 bytes to include key) that turn into 0 (i.e. they’ll need only 1 byte to describe it). However, each of these writes in the uncompressed form will be represented as 272 byte state diff entry and so we get the number of diffs is `120k / 5 = 24k`. This means that they will have
-accoomdate `24k * 272 = 6528000` bytes of calldata for the uncompressed state diffs. Adding 120k on top leaves us with roughly `6650000` bytes needed for calldata. `207813` slots are needed to accomodate this amount of data.
-We round up to `208000` slots to give space for constant-size factors for ABI-encoding, like offsets, lengths, etc.
+Note, that while the realistic number of pubdata that can be published in a batch is ~260kb, the size of the calldata to L1Messenger may be a lot larger due to the fact that this method also accepts the original uncompressed state diff entries. These will not be published to L1, but will be used to verify the correctness of the compression. The worst-case number of bytes that may be needed for this scratch space is if all the pubdata consists of repeated writes (i.e. we’ll need only 4 bytes to include key) that turn into 0 (i.e. they’ll need only 1 byte to describe it). However, each of these writes in the uncompressed form will be represented as 272 byte state diff entry and so we get the number of diffs is `260kb / 5 = 52k`. This means that they will have
+accoomdate `52k * 272 = 14144000` bytes of calldata for the uncompressed state diffs. Adding 260k on top leaves us with roughly `14404000` bytes needed for calldata. `450125` slots are needed to accomodate this amount of data.
+We round up to `451000` slots to give space for constant-size factors for ABI-encoding, like offsets, lengths, etc.
 
 In theory though much more calldata could be used (if for instance 1 byte is used for enum index). It is the responsibility of the operator to ensure that it can form the correct calldata for the L1Messenger.
 
 ### **Transaction’s meta descriptions**
 
-- `[248053..250100]` words — 2048 slots for 1024 transaction’s meta descriptions (their structure is explained below).
+- `[586653..606652]` words — 20000 slots for 10000 transaction’s meta descriptions (their structure is explained below).
 
 For internal reasons related to possible future integrations of zero-knowledge proofs about some of the contents of the bootloader’s memory, the array of the transactions is not passed as the ABI-encoding of the array of transactions, but:
 
-- We have a constant maximum number of transactions. At the time of this writing, this number is 1024.
-- Then, we have 1024 transaction descriptions, each ABI encoded as the following struct:
+- We have a constant maximum number of transactions. At the time of this writing, this number is 10000.
+- Then, we have 10000 transaction descriptions, each ABI encoded as the following struct:
 
 ```solidity
 struct BootloaderTxDescription {
@@ -339,13 +339,13 @@ struct BootloaderTxDescription {
 
 ### **Reserved slots for the calldata for the paymaster’s postOp operation**
 
-- `[252149..252188]` words — 40 slots which could be used for encoding the calls for postOp methods of the paymaster.
+- `[606653..606692]` words — 40 slots which could be used for encoding the calls for postOp methods of the paymaster.
 
 To avoid additional copying of transactions for calls for the account abstraction, we reserve some of the slots which could be then used to form the calldata for the `postOp` call for the account abstraction without having to copy the entire transaction’s data.
 
 ### **The actual transaction’s descriptions**
 
-- `[252189..523261]`
+- `[606693..927496]`
 
 Starting from the 487312 word, the actual descriptions of the transactions start. (The struct can be found by this [link](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/libraries/TransactionHelper.sol#L25)). The bootloader enforces that:
 
@@ -355,13 +355,13 @@ Starting from the 487312 word, the actual descriptions of the transactions start
 
 ### **VM hook pointers**
 
-- `[523261..523263]`
+- `[927497..927499]`
 
 These are memory slots that are used purely for debugging purposes (when the VM writes to these slots, the server side can catch these calls and give important insight information for debugging issues).
 
 ### **Result ptr pointer**
 
-- [523264..524287]
+- [927500..928523]
 
 These are memory slots that are used to track the success status of a transaction. If the transaction with number `i` succeeded, the slot `2^19 - 1024 + i` will be marked as 1 and 0 otherwise.
 
@@ -379,20 +379,18 @@ Note, that if you call an account that is in kernel space and does not have any 
 
 We process the L2 transactions according to our account abstraction protocol: [https://v2-docs.zksync.io/dev/tutorials/custom-aa-tutorial.html#prerequisite](https://v2-docs.zksync.io/dev/tutorials/custom-aa-tutorial.html#prerequisite).
 
-1. We [deduct](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1073) the transaction’s upfront payment for the overhead for the block’s processing. You can read more on how that works in the fee model [description](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md).
+1. We [deduct](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1073) the transaction’s upfront payment for the overhead for the block’s processing. You can read more on how that works in the fee model [description](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md).
 2. Then we calculate the gasPrice for these transactions according to the EIP1559 rules.
 3. We [conduct the validation step](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1180) of the AA protocol:
 - We calculate the hash of the transaction.
-- If enough gas has been provided, we `near_call` the validation function in the bootloader. It sets the tx.origin to the address of the bootloader, sets the ergsPric and then invokes the validation method of the account and verifies the returned magic.
+- If enough gas has been provided, we near_call the validation function in the bootloader. It sets the tx.origin to the address of the bootloader, sets the ergsPrice. It also marks the factory dependencies provided by the transaction as marked and then invokes the validation method of the account and verifies the returned magic.
 - Calls the accounts and, if needed, the paymaster to receive the payment for the transaction. Note, that accounts may not use `block.baseFee` context variable, so they have no way to know what exact sum to pay. That’s why the accounts typically firstly send `tx.maxFeePerErg * tx.ergsLimit` and the bootloader [refunds](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L730) for any excess funds sent.
 4. [We perform the execution of the transaction](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1234). Note, that if the sender is an EOA, tx.origin is set equal to the `from` the value of the transaction. During the execution of the transaction, the publishing of the compressed bytecodes happens: for each factory dependency if it has not been published yet and its hash is currently pointed to in the compressed bytecodes area of the bootloader, a call to the bytecode compressor is done. Also, at the end the call to the KnownCodeStorage is done to ensure all the bytecodes have indeed been published.
 5. We [refund](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1401) the user for any excess funds he spent on the transaction:
 - Firstly, the `postTransaction` operation is called to the paymaster.
-- The bootloader asks the operator to provide a refund. During the first VM run without proofs the provide directly inserts the refunds in the memory of the bootloader. During the run for the proved batches, the operator already knows what which values have to be inserted there. You can read more about it in the [documentation](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md) of the fee model.
+- The bootloader asks the operator to provide a refund. During the first VM run without proofs the provide directly inserts the refunds in the memory of the bootloader. During the run for the proved batches, the operator already knows what which values have to be inserted there. You can read more about it in the [documentation](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md) of the fee model.
 - The bootloader refunds the user.
-6. We notify the operator about the [refund](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1112) that was granted to the user. It will be used for the correct displaying of gasUsed for the transaction in explorer.
-
-After (3), (4) and (5) we double check whether the user has enough gas to pay for the published pubdata. You can read more on how we handle pubdata [here](./zkSync%20fee%20model.md#How%20we%20charge%20for%20pubdata).
+1. We notify the operator about the [refund](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1112) that was granted to the user. It will be used for the correct displaying of gasUsed for the transaction in explorer.
 
 ## L1->L2 transactions
 
@@ -407,17 +405,17 @@ There are two kinds of L1->L2 transactions:
 - Priority operations, initiated by users (they have type `255`).
 - Upgrade transactions, that can be initiated during system upgrade (they have type `254`).
 
-You can read more about differences between those in the corresponding [document](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
+You can read more about differences between those in the corresponding [document](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
 
 ## End of the batch
 
 At the end of the batch we set `tx.origin` and `tx.gasprice` context variables to zero to save L1 gas on calldata and send the entire bootloader balance to the operator, effectively sending fees to him.
 
-Also, we [set](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L3812) the fictive L2 block’s data. Then, we call the system context to ensure that it publishes the timestamp of the L2 block as well as L1 batch. We also reset the `txNumberInBlock` counter to avoid its state diffs from being published on L1. You can read more about block processing on zkSync [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md).
+Also, we [set](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L3812) the fictive L2 block’s data. Then, we call the system context to ensure that it publishes the timestamp of the L2 block as well as L1 batch. We also reset the `txNumberInBlock` counter to avoid its state diffs from being published on L1. You can read more about block processing on zkSync [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md).
 
-After that, we publish the hash as well as the number of priority operations in this batch. More on it [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
+After that, we publish the hash as well as the number of priority operations in this batch. More on it [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
 
-Then, we call the L1Messenger system contract for it to compose the pubdata to be published on L1. You can read more about the pubdata processing [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
+Then, we call the L1Messenger system contract for it to compose the pubdata to be published on L1. You can read more about the pubdata processing [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
 
 # System contracts
 
@@ -431,7 +429,7 @@ This contract is used to support various system parameters not included in the V
 
 It is important to note that the constructor is **not** run for system contracts upon genesis, i.e. the constant context values are set on genesis explicitly. Notably, if in the future we want to upgrade the contracts, we will do it via [ContractDeployer](#contractdeployer--immutablesimulator) and so the constructor will be run.
 
-This contract is also responsible for ensuring validity and consistency of batches, L2 blocks and virtual blocks. The implementation itself is rather straightforward, but to better understand this contract, please take a look at the [page](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md) about the block processing on zkSync.
+This contract is also responsible for ensuring validity and consistency of batches, L2 blocks and virtual blocks. The implementation itself is rather straightforward, but to better understand this contract, please take a look at the [page](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md) about the block processing on zkSync.
 
 ## AccountCodeStorage
 
@@ -487,7 +485,7 @@ Both contracts should apply padding to the input according to their respective s
 
 ## EcAdd & EcMul
 
-These precompiles simulate the behaviour of the EVM's EcAdd and EcMul precompiles and are fully implemented in Yul without circuit counterparts. You can read more about them [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Elliptic%20curve%20precompiles.md).
+These precompiles simulate the behaviour of the EVM's EcAdd and EcMul precompiles and are fully implemented in Yul without circuit counterparts. You can read more about them [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Elliptic%20curve%20precompiles.md).
 
 ## L2EthToken & MsgValueSimulator
 
@@ -586,7 +584,7 @@ A contract used for sending arbitrary length L2→L1 messages from zkSync to L1.
 
 The L1 messenger receives a message, hashes it and sends only its hash as well as the original sender via L2→L1 log. Then, it is the duty of the L1 smart contracts to make sure that the operator has provided full preimage of this hash in the commitment of the batch.
 
-The `L1Messenger` is also responsible for validating the total pubdata to be sent on L1. You can read more about it [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
+The `L1Messenger` is also responsible for validating the total pubdata to be sent on L1. You can read more about it [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
 
 ## NonceHolder
 
@@ -614,7 +612,7 @@ One of the most expensive resource for a rollup is data availability, so in orde
 - We compress published bytecodes.
 - We compress state diffs.
 
-This contract contains utility methods that are used to verify the correctness of either bytecode or state diff compression. You can read more on how we compress state diffs and bytecodes in the corresponding [document](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
+This contract contains utility methods that are used to verify the correctness of either bytecode or state diff compression. You can read more on how we compress state diffs and bytecodes in the corresponding [document](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
 
 ## CodeOracle
 
@@ -637,5 +635,5 @@ This contract exerts the same behavior as the P256Verify precompile from [RIP721
 
 The protocol, while conceptually complete, contains some known issues which will be resolved in the short to middle term.
 
-- Fee modeling is yet to be improved. More on it in the [document](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md) on the fee model.
+- Fee modeling is yet to be improved. More on it in the [document](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md) on the fee model.
 - We may add some kind of default implementation for the contracts in the kernel space (i.e. if called, they wouldn’t revert but behave like an EOA).

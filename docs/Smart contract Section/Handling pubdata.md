@@ -1,4 +1,4 @@
-# Handling pubdata in Boojum
+# Handling pubdata
 
 Pubdata in zkSync can be divided up into 4 different categories:
 
@@ -7,32 +7,9 @@ Pubdata in zkSync can be divided up into 4 different categories:
 3. Smart Contract Bytecodes
 4. Storage writes
 
-Using data corresponding to these 4 facets, across all executed batches, we’re able to reconstruct the full state of L2. With the upgrade to our new proof system, Boojum, the way this data is represented will change. At a high level, in the pre-Boojum system these are represented as separate fields while for boojum they will be packed into a single bytes array. Once 4844 gets integrated this bytes array will move from being part of the calldata to blob data.
-
-While the structure of the pubdata changes, the way in which one can go about pulling the information will remain the same. Basically, we just need to filter all of the transactions to the L1 zkSync contract for only the `commitBatches` transactions where the proposed block has been referenced by a corresponding `executeBatches` call (the reason for this is that a committed or even proven block can be reverted but an executed one cannot). Once we have all the committed batches that have been executed, we then will pull the transaction input and the relevant fields, applying them in order to reconstruct the current state of L2.
+Using data corresponding to these 4 facets, across all executed batches, we’re able to reconstruct the full state of L2. To restore the state we just need to filter all of the transactions to the L1 zkSync contract for only the `commitBatches` transactions where the proposed block has been referenced by a corresponding `executeBatches` call (the reason for this is that a committed or even proven block can be reverted but an executed one cannot). Once we have all the committed batches that have been executed, we then will pull the transaction input and the relevant fields, applying them in order to reconstruct the current state of L2.
 
 # L2→L1 communication
-
-## L2→L1 communication before Boojum
-
-While there were quite some changes during Boojum upgrade, most of the scheme remains the same and so explaining how it worked before gives some background on why certain decisions are made and kept for backward compatibility.
-
-[L2→L1 communication before Boojum](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum/L2%E2%86%92L1%20communication%20before%20Boojum.md)
-
-The most important feature that we’ll need to maintain in Boojum for backward compatibility is to provide a similar Merkle tree of L2→L1 logs with the long L2→L1 messages and priority operations’ status. 
-
-Before Boojum, whenever we sent an L2→L1 long message, a *log* was appended to the Merkle tree of L2→L1 messages on L1 due to necessity. In Boojum we’ll have to maintain this fact. Having the priority operations’ statuses is important to enable [proving](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/bridge/L1ERC20Bridge.sol#L255) failed deposits for bridges. 
-
-## Changes with Boojum
-
-### Problems with the previous approach
-
-- There was a limit of 512 L2→L1 logs per batch, which is very limiting. It causes our block to be forcefully closed based on the number of these messages instead of having the pubdata as the only limit.
-- In the ideal world, we would like to have the tree adapt to the requirements of the batch, with any number of leaves possible (in practice, a maximum of 2048 would likely be enough for the foreseeable future).
-- Extending the tree in the circuits will be hard to do and hard to maintain.
-- The hash of the contents of the L2→L1 messages needs to be rehashed to support the danksharding blobs, so we want to keep only the essential logs as parts of calldata and the rest should be separated so that they could be moved the EIP4844 blob in the future.
-
-### Solution
 
 We will implement the calculation of the Merkle root of the L2→L1 messages via a system contract as part of the `L1Messenger`. Basically, whenever a new log emitted by users that needs to be Merklized is created, the `L1Messenger` contract will append it to its rolling hash and then at the end of the batch, during the formation of the blob it will receive the original preimages from the operator, verify, and include the logs to the blob.
 

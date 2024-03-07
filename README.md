@@ -16,13 +16,26 @@
 
 ## Automated Findings / Publicly Known Issues
 
-Automated findings output for the audit can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/code/bot-report.md) within 24 hours of audit opening.
+The 4naly3er report can be found [here](https://github.com/code-423n4/YYYY-MM-contest-candidate/blob/main/4naly3er-report.md).
 
-*Note for C4 wardens: Anything included in the automated findings output is considered a publicly known issue and is ineligible for awards.*
+*Note for C4 wardens: Anything included in the 4naly3er report is considered a publicly known issue and is ineligible for awards.*
 
 ### DefaultAccount does not always return successfully
 
-[DefaultAccount](https://github.com/code-423n4/2024-03-zksync/blob/main/code/code/system-contracts/contracts/DefaultAccount.sol), while it should always behave as an EOA (i.e. any call to it should return `success(0,0)`), if called with a selector of one of its methods and incorrect ABI-encoding of its parameters, will fail with empty error. This happens due to the fact that the ABI decoding fails before the modifier is triggered.
+[DefaultAccount](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/DefaultAccount.sol), while it should always behave as an EOA (i.e. any call to it should return `success(0,0)`), if called with a selector of one of its methods and incorrect ABI-encoding of its parameters, will fail with empty error. This happens due to the fact that the ABI decoding fails before the modifier is triggered.
+
+### extcodehash does not distinguish empty contracts on account balances
+
+According to the [EIP-161](https://eips.ethereum.org/EIPS/eip-161), an account is “empty” when it meets the following conditions: it has no deployed code, its nonce value is zero, and it holds a balance of zero. According to [EIP-1052](https://eips.ethereum.org/EIPS/eip-1052), the extcodehash of an empty account should evaluate to `bytes32(0)`, otherwice it is `keccak256(deployedBytecode)`. On zkSync, `bytes32(0)` is returned in case there is no deployed code and nonce is zero regardless of the account balance.
+
+### Validator can provide innefient bytecode compression
+
+In the current implementation, the mechanism for bytecode compression is not strictly unambiguous. That means the validator has the flexibility to choose a less efficient compression for the bytecode to increase the deployment cost for the end user. Besides that, there is another non-fixed [issue](https://github.com/code-423n4/2023-10-zksync-findings/issues/805), that gives a way for the operator to forces the user to pay more for the bytecode compression or even burn all the transaction gas during bytecode compression verification.
+
+### Aknowledged issues from the previous audits
+
+All unfixed issues from the previous audits are considered out of scope.
+- https://era.zksync.io/docs/reference/troubleshooting/audit-bug-bounty.html
 
 ### Known differences from Ethereum
 
@@ -40,26 +53,30 @@ As part of this security audit, we are focusing on the changes and updates made 
 
 ## **📁 Sections**
 
-### **1. Smart Contracts Section**
+### **1. Protocol Section**
+
+- **[Protocol overview](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Protocol%20Section/Overview.md)**
+
+### **2. Smart Contracts Section**
 
 Relevant Documentation:
 
-- **[L1 smart contracts](https://github.com/code-423n4/2024-03-zksync/blob/main//docs/Smart%20contract%20Section/L1%20smart%20contracts.md)**
-- **[System Contracts/Bootloader Description](https://github.com/code-423n4/2024-03-zksync/blob/main//docs/Smart%20contract%20Section/System%20contracts%20bootloader%20description.md)**
-- **[zkSync Era Fee Model](https://github.com/code-423n4/2024-03-zksync/blob/main//docs/Smart%20contract%20Section/zkSync%20fee%20model.md)**
-- **[Handling L1→L2 Ops on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main//docs/Smart%20contract%20Section/Handling%20L1→L2%20ops%20on%20zkSync.md)**
-- **[Batches & L2 Blocks on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main//docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md)**
-- **[Elliptic Curve Precompiles](https://github.com/code-423n4/2024-03-zksync/blob/main//docs/Smart%20contract%20Section/Elliptic%20curve%20precompiles.md)**
-- **[Handling Pubdata in Boojum](https://github.com/code-423n4/2024-03-zksync/blob/main//docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md)**
+- **[L1 smart contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/L1%20smart%20contracts.md)**
+- **[System Contracts/Bootloader Description](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/System%20contracts%20bootloader%20description.md)**
+- **[zkSync Era Fee Model](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md)**
+- **[Handling L1→L2 Ops on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1→L2%20ops%20on%20zkSync.md)**
+- **[Batches & L2 Blocks on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md)**
+- **[Elliptic Curve Precompiles](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Elliptic%20curve%20precompiles.md)**
+- **[Handling Pubdata in Boojum](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md)**
 - **[Pubdata post EIP-4844](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Pubdata%20Post%204844.md)**
 
-### **2. VM Section**
+### **3. VM Section**
 
 The VM section is related to the zkSync Era Virtual Machine.
 
-- **[ZkSync Era Virtual Machine Primer](https://github.com/code-423n4/2024-03-zksync/blob/main//docs/VM%20Section/ZkSync%20Era%20Virtual%20Machine%20primer.md)**
+- **[ZkSync Era Virtual Machine Primer](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/ZkSync%20Era%20Virtual%20Machine%20primer.md)**
     - This primer is designed to provide auditors with a foundational understanding of the zkSync Era Virtual Machine. It offers insights into the operational mechanics and integral components of EraVM, serving as an essential guide for those seeking to explore the zkSync EraVM environment.
-- **[zkSync Era: The Equivalence Compiler Documentation](https://github.com/code-423n4/2024-03-zksync/blob/main//docs/VM%20Section/How%20compiler%20works/overview.md)**
+- **[zkSync Era: The Equivalence Compiler Documentation](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/overview.md)**
     - The document describes how zkSync Solidity compiler represents high-level programming language constructions into low-level EraVM instruction set, how to use unique features without extending Solidity language with new syntax and why system contracts are needed.
 
 ## **🚀 Getting Started for Auditors**
