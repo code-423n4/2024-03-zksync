@@ -19,6 +19,11 @@ import {IPubdataChunkPublisher} from "./interfaces/IPubdataChunkPublisher.sol";
 /// started from 2^15 in order to avoid collision with Ethereum precompiles.
 uint160 constant SYSTEM_CONTRACTS_OFFSET = {{SYSTEM_CONTRACTS_OFFSET}}; // 2^15
 
+/// @dev Unlike the value above, it is not overridden for the purpose of testing and 
+/// is identical to the constant value actually used as the system contracts offset on 
+/// mainnet. 
+uint160 constant REAL_SYSTEM_CONTRACTS_OFFSET = 0x8000;
+
 /// @dev All the system contracts must be located in the kernel space,
 /// i.e. their addresses must be below 2^16.
 uint160 constant MAX_SYSTEM_CONTRACT_ADDRESS = 0xffff; // 2^16 - 1
@@ -27,6 +32,13 @@ address constant ECRECOVER_SYSTEM_CONTRACT = address(0x01);
 address constant SHA256_SYSTEM_CONTRACT = address(0x02);
 address constant ECADD_SYSTEM_CONTRACT = address(0x06);
 address constant ECMUL_SYSTEM_CONTRACT = address(0x07);
+
+
+/// @dev The number of ergs that need to be spent for a single byte of pubdata regardless of the pubdata price.
+/// This variable is used to ensure the following:
+/// - That the long-term storage of the operator is compensated properly.
+/// - That it is not possible that the pubdata counter grows too high without spending proportional amount of computation.
+uint256 constant COMPUTATIONAL_PRICE_FOR_PUBDATA = 80;
 
 /// @dev The maximal possible address of an L1-like precompie. These precompiles maintain the following properties:
 /// - Their extcodehash is EMPTY_STRING_KECCAK
@@ -51,6 +63,7 @@ IL1Messenger constant L1_MESSENGER_CONTRACT = IL1Messenger(address(SYSTEM_CONTRA
 address constant MSG_VALUE_SYSTEM_CONTRACT = address(SYSTEM_CONTRACTS_OFFSET + 0x09);
 
 IBaseToken constant BASE_TOKEN_SYSTEM_CONTRACT = IBaseToken(address(SYSTEM_CONTRACTS_OFFSET + 0x0a));
+IBaseToken constant REAL_BASE_TOKEN_SYSTEM_CONTRACT = IBaseToken(address(REAL_SYSTEM_CONTRACTS_OFFSET + 0x0a));
 
 // Hardcoded because even for tests we should keep the address. (Instead `SYSTEM_CONTRACTS_OFFSET + 0x10`)
 // Precompile call depends on it.
@@ -58,6 +71,7 @@ IBaseToken constant BASE_TOKEN_SYSTEM_CONTRACT = IBaseToken(address(SYSTEM_CONTR
 address constant KECCAK256_SYSTEM_CONTRACT = address(0x8010);
 
 ISystemContext constant SYSTEM_CONTEXT_CONTRACT = ISystemContext(payable(address(SYSTEM_CONTRACTS_OFFSET + 0x0b)));
+ISystemContext constant REAL_SYSTEM_CONTEXT_CONTRACT = ISystemContext(payable(address(REAL_SYSTEM_CONTRACTS_OFFSET + 0x0b)));
 
 IBootloaderUtilities constant BOOTLOADER_UTILITIES = IBootloaderUtilities(address(SYSTEM_CONTRACTS_OFFSET + 0x0c));
 

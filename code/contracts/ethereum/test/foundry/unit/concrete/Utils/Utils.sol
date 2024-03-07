@@ -23,6 +23,9 @@ address constant L2_KNOWN_CODE_STORAGE_ADDRESS = 0x00000000000000000000000000000
 address constant L2_TO_L1_MESSENGER = 0x0000000000000000000000000000000000008008;
 address constant PUBDATA_PUBLISHER_ADDRESS = 0x0000000000000000000000000000000000008011;
 
+uint256 constant MAX_NUMBER_OF_BLOBS = 2;
+uint256 constant TOTAL_BLOBS_IN_COMMITMENT = 16;
+
 library Utils {
     function packBatchTimestampAndBlockTimestamp(
         uint256 batchTimestamp,
@@ -141,7 +144,7 @@ library Utils {
             });
     }
 
-    function createProofInput() public view returns (IExecutor.ProofInput memory) {
+    function createProofInput() public pure returns (IExecutor.ProofInput memory) {
         uint256[] memory recursiveAggregationInput;
         uint256[] memory serializedProof;
 
@@ -160,7 +163,7 @@ library Utils {
         return result;
     }
 
-    function getAdminSelectors() public view returns (bytes4[] memory) {
+    function getAdminSelectors() public pure returns (bytes4[] memory) {
         bytes4[] memory selectors = new bytes4[](11);
         selectors[0] = AdminFacet.setPendingAdmin.selector;
         selectors[1] = AdminFacet.acceptAdmin.selector;
@@ -176,7 +179,7 @@ library Utils {
         return selectors;
     }
 
-    function getExecutorSelectors() public view returns (bytes4[] memory) {
+    function getExecutorSelectors() public pure returns (bytes4[] memory) {
         bytes4[] memory selectors = new bytes4[](4);
         selectors[0] = ExecutorFacet.commitBatches.selector;
         selectors[1] = ExecutorFacet.proveBatches.selector;
@@ -271,57 +274,6 @@ library Utils {
         selectors[35] = UtilsFacet.util_getIsFrozen.selector;
         return selectors;
     }
-
-    // function initial_deployment() public returns (address[] memory) {
-    //     GettersFacet gettersFacet = new GettersFacet();
-    //     MailboxFacet mailboxFacet = new MailboxFacet();
-    //     // allowList = new AllowList(owner);
-    //     DiamondInit diamondInit = new DiamondInit();
-
-    //     bytes8 dummyHash = 0x1234567890123456;
-    //     address dummyAddress = makeAddr("dummyAddress");
-    //     bytes memory diamondInitData = abi.encodeWithSelector(
-    //         diamondInit.initialize.selector,
-    //         dummyAddress,
-    //         owner,
-    //         owner,
-    //         0,
-    //         0,
-    //         0,
-    //         allowList,
-    //         VerifierParams({recursionNodeLevelVkHash: 0, recursionLeafLevelVkHash: 0, recursionCircuitsSetVksHash: 0}),
-    //         false,
-    //         dummyHash,
-    //         dummyHash,
-    //         10000000
-    //     );
-
-    //     Diamond.FacetCut[] memory facetCuts = new Diamond.FacetCut[](2);
-    //     facetCuts[0] = Diamond.FacetCut({
-    //         facet: address(gettersFacet),
-    //         action: Diamond.Action.Add,
-    //         isFreezable: false,
-    //         selectors: Utils.getGettersSelectors()
-    //     });
-    //     facetCuts[1] = Diamond.FacetCut({
-    //         facet: address(mailboxFacet),
-    //         action: Diamond.Action.Add,
-    //         isFreezable: true,
-    //         selectors: Utils.getMailboxSelectors()
-    //     });
-
-    //     Diamond.DiamondCutData memory diamondCutData = Diamond.DiamondCutData({
-    //         facetCuts: facetCuts,
-    //         initAddress: address(diamondInit),
-    //         initCalldata: diamondInitData
-    //     });
-
-    //     uint256 chainId = block.chainid;
-    //     DiamondProxy diamondProxy = new DiamondProxy(chainId, diamondCutData);
-
-    //     vm.prank(owner);
-    //     allowList.setAccessMode(address(diamondProxy), IAllowList.AccessMode.Public);
-    // }
 
     function makeVerifier() public pure returns (IVerifier) {
         return IVerifier(address(0xdeadbeef));
@@ -422,7 +374,7 @@ library Utils {
     function _batchMetaParameters() internal pure returns (bytes memory) {
         // Used in __Executor_Shared.t.sol
         bytes8 dummyHash = 0x1234567890123456;
-        return abi.encodePacked(false, bytes32(dummyHash), bytes32(dummyHash));
+        return abi.encodePacked(false, bytes32(dummyHash), bytes32(dummyHash), bytes32(dummyHash));
     }
 
     function _batchAuxiliaryOutput(
@@ -434,21 +386,42 @@ library Utils {
         bytes32 l2ToL1LogsHash = keccak256(_batch.systemLogs);
 
         return
-            abi.encode(
+            abi.encodePacked(
                 l2ToL1LogsHash,
                 _stateDiffHash,
                 _batch.bootloaderHeapInitialContentsHash,
                 _batch.eventsQueueStateHash,
-                // for each blob we have:
-                // linear hash (hash of preimage from system logs) and
-                // output hash of blob commitments: keccak(versioned hash || opening point || evaluation value)
-                // These values will all be bytes32(0) when we submit pubdata via calldata instead of blobs.
-                // If we only utilize a single blob, _blobHash[1] and _blobCommitments[1] will be bytes32(0)
-                _blobHashes[0],
-                _blobCommitments[0],
-                _blobHashes[1],
-                _blobCommitments[1]
+                _encodeBlobAuxilaryOutput(_blobCommitments, _blobHashes)
             );
+    }
+
+    /// @dev Encodes the commitment to blobs to be used in the auxiliary output of the batch commitment
+    /// @param _blobCommitments - the commitments to the blobs
+    /// @param _blobHashes - the hashes of the blobs
+    /// @param blobAuxOutputWords - The circuit commitment to the blobs split into 32-byte words
+    function _encodeBlobAuxilaryOutput(
+        bytes32[] memory _blobCommitments,
+        bytes32[] memory _blobHashes
+    ) internal pure returns (bytes32[] memory blobAuxOutputWords) {
+        // These invariants should be checked by the caller of this function, but we double check
+        // just in case.
+        require(_blobCommitments.length == MAX_NUMBER_OF_BLOBS, "b10");
+        require(_blobHashes.length == MAX_NUMBER_OF_BLOBS, "b11");
+
+        // for each blob we have:
+        // linear hash (hash of preimage from system logs) and
+        // output hash of blob commitments: keccak(versioned hash || opening point || evaluation value)
+        // These values will all be bytes32(0) when we submit pubdata via calldata instead of blobs.
+        //
+        // For now, only up to 2 blobs are supported by the contract, while 16 are required by the circuits.
+        // All the unfilled blobs will have their commitment as 0, including the case when we use only 1 blob.
+
+        blobAuxOutputWords = new bytes32[](2 * TOTAL_BLOBS_IN_COMMITMENT);
+
+        for (uint i = 0; i < MAX_NUMBER_OF_BLOBS; i++) {
+            blobAuxOutputWords[i * 2] = _blobHashes[i];
+            blobAuxOutputWords[i * 2 + 1] = _blobCommitments[i];
+        }
     }
 
     // add this to be excluded from coverage report

@@ -103,3 +103,13 @@ dist
 
 # TernJS port file
 .tern-port
+
+artifacts-forge
+artifacts
+cache
+cache-forge
+artifacts-zk
+cache-zk
+typechain
+contracts-preprocessed
+build
