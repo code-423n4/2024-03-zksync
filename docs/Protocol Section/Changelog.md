@@ -90,7 +90,8 @@ You can read the full diff between the scope for the previous contest here:
 
 * `Bootloader.yul`:
     - Added `shouldMsgValueMimicCallBeSystem` as protection from calling system contracts with `isSystem` flag without need.
-    - TODO
+    - Increased the maximal number of transactions in a batch to 10000 as well as the memory to 30000000 bytes. More of that memmory is dedicated to encoding pubdata since the EIP4844 support allows for two blobs per batch.
+    - Fee model related changes. More on how the new fee model works can be read [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md).
 * `MsgValueSimulator.sol` - Added support of gas stipend to allow `.transfer`/`.send` Solidity features.
 * `SystemContext.sol` - Added support of changing `chainID` during the upgrade.
 * `Compressor.sol` - Added small protection of publishing very inefficient compression in `publishCompressedBytecode`
