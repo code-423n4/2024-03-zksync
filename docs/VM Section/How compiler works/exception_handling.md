@@ -3,7 +3,7 @@
 This document explains some peculiarities of the exception handling (EH) in zkEVM architecture.
 
 In a nutshell, there are two exception handling mechanisms in zkEVM: contract-level and function-level.
-The former is more common to general-purpose languages, and the latter was inherited from the EVM architecture.
+The former was inherited from the EVM architecture, and the latter is more common to general-purpose languages.
 
 |  | Contract Level | Function Level |
 | --- | --- | --- |
@@ -41,6 +41,11 @@ of the contract, leaving no possibility to catch and handle it on the way.
 
 These types of exceptions are more efficient, as you can revert at any point of the execution without propagating
 the control flow all the way up to the uppermost function frame.
+
+## Implementation
+
+In EraVM, contracts call each other using [`far_call` instruction](https://matter-labs.github.io/eravm-spec/spec.html#FarCalls).
+It [accepts the address of the exception handler](https://matter-labs.github.io/eravm-spec/spec.html#OpFarCall) as one of its arguments.
 
 # Function Level
 
@@ -93,3 +98,27 @@ function ZKSYNC_CATCH_NEAR_CALL() {               // 07
 Having all the overhead above, the `catch` blocks are only generated if there is the EH function `ZKSYNC_CATCH_NEAR_CALL`
 defined in the contract. Otherwise there is no need to catch panics and they will be propagated to the callee contract
 automatically by the VM execution environment.
+
+## Implementation
+
+In EraVM, there are two ways of implementing contract-local function calls:
+
+1. Saving the return address and using a [`jump`](https://matter-labs.github.io/eravm-spec/spec.html#JumpDefinition) instruction to call; using [`jump`](https://matter-labs.github.io/eravm-spec/spec.html#JumpDefinition) instruction with saved return address to return.
+2. Using
+[`call`](https://matter-labs.github.io/eravm-spec/spec.html#NearCallDefinition)
+instruction to call; using one of `ret` instructions with modifiers
+[`ok`](https://matter-labs.github.io/eravm-spec/spec.html#NearRetDefinition),
+[`revert`](https://matter-labs.github.io/eravm-spec/spec.html#NearRevertDefinition), or
+[`panic`](https://matter-labs.github.io/eravm-spec/spec.html#step_oppanic) to return.
+
+Using `jump` is more lightweight and cheaper, but using `call`/`ret` is more feature-rich:
+
+
+1. In case of panic or revert, the storage effects and queues of this function are rolled back.
+2. It is possible to pass a portion of available gas; the unused gas will be returned to the caller, unless the function panicked.
+3. It is possible to set up a custom exception handler.
+
+Prefixing Yul function name with `ZKSYNC_NEAR_CALL_` allows to use this
+additional, platform-specific functionality, implemented by the `call`
+instruction. For other functions, the choice between `call`/`ret` or `jump` is
+up to the compiler.

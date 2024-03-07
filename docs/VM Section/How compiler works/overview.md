@@ -11,6 +11,7 @@
 | LLVM | The compiler framework, used for optimizations and assembly generation. |
 | EraVM assembler/linker | The tool written in Rust. Translates the assembly emitted by LLVM to the target bytecode. |
 | Virtual machine | The zkSync Era virtual machine called EraVM with a custom instruction set. |
+| EraVM specification | A combination of a human readable documentation and a formal description of EraVM, including its structure and operation, instruction syntax, semantic, and encoding. [link](https://matter-labs.github.io/eravm-spec/spec.html) |
 | Intermediate representation (IR) | The data structure or code used internally by the compiler to represent source code. |
 | Yul | One of the Solidity IRs. Is a superset of the assembly available in Solidity. Used by default for contracts written in Solidity ≥0.8. |
 | EVMLA | One of the Solidity IRs called EVM legacy assembly. Is a predecessor of Yul, but must closer to the pure EVM bytecode. Used by default for contracts written in Solidity <0.8. |
@@ -142,3 +143,5 @@ At the moment it does not explain much of the LLVM IR and assembly aspects, but 
 | selfdestruct | SELFDESTRUCT | unsupported | - | - | Compile time error |
 
 For more information on how zkSync Era achieves EVM-equivalence, see the [Instructions](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions) section.
+
+For a detailed description of EraVM instruction set, refer to the [list of instructions](https://matter-labs.github.io/eravm-spec/spec.html#AssemblyInstructionSet) and [their meanings](https://matter-labs.github.io/eravm-spec/spec.html#SmallStep) in [EraVM specification](https://matter-labs.github.io/eravm-spec/spec.html)

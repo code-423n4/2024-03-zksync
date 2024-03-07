@@ -16,7 +16,7 @@
 add     r1, r2, r1
 ```
 
-
+For more detail, see the [EraVM specification reference](https://matter-labs.github.io/eravm-spec/spec.html#AddDefinition)
 
 # [MUL](https://www.evm.codes/#02?fork=shanghai)
 
@@ -51,6 +51,7 @@ The snippet below returns the carry value.
 mul     r1, r2, r1, r2
 ```
 
+For more detail, see the [EraVM specification reference](https://matter-labs.github.io/eravm-spec/spec.html#MulDefinition)
 
 
 # [SUB](https://www.evm.codes/#03?fork=shanghai)
@@ -71,6 +72,7 @@ mul     r1, r2, r1, r2
 sub     r1, r2, r1
 ```
 
+For more detail, see the [EraVM specification reference](https://matter-labs.github.io/eravm-spec/spec.html#SubDefinition)
 
 
 # [DIV](https://www.evm.codes/#04?fork=shanghai)
@@ -101,7 +103,7 @@ return:
 
 [LLVM IR instruction documentation](https://releases.llvm.org/15.0.0/docs/LangRef.html#udiv-instruction)
 
-
+For more detail, see the [EraVM specification reference](https://matter-labs.github.io/eravm-spec/spec.html#DivDefinition)
 
 # [SDIV](https://www.evm.codes/#05?fork=shanghai)
 
@@ -133,6 +135,7 @@ return:
 
 [LLVM IR instruction documentation](https://releases.llvm.org/15.0.0/docs/LangRef.html#sdiv-instruction)
 
+EraVM does not have a similar instruction.
 
 
 # [MOD](https://www.evm.codes/#06?fork=shanghai)
@@ -163,7 +166,7 @@ return:
 
 [LLVM IR instruction documentation](https://releases.llvm.org/15.0.0/docs/LangRef.html#urem-instruction)
 
-
+For more detail, see the [EraVM specification reference](https://matter-labs.github.io/eravm-spec/spec.html#DivDefinition)
 
 # [SMOD](https://www.evm.codes/#07?fork=shanghai)
 
@@ -195,6 +198,7 @@ return:
 
 [LLVM IR instruction documentation](https://releases.llvm.org/15.0.0/docs/LangRef.html#srem-instruction)
 
+EraVM does not have a similar instruction.
 
 
 # [ADDMOD](https://www.evm.codes/#08?fork=shanghai)
@@ -230,7 +234,7 @@ return:
 
 [The LLVM IR generator code](https://github.com/matter-labs/era-compiler-llvm-context/blob/main/src/eravm/evm/math.rs#L16) is common for Yul and EVMLA representations.
 
-
+EraVM does not have a similar instruction.
 
 # [MULMOD](https://www.evm.codes/#09?fork=shanghai)
 
@@ -270,7 +274,7 @@ slow:
 
 [The LLVM IR generator code](https://github.com/matter-labs/era-compiler-llvm-context/blob/main/src/eravm/evm/math.rs#L43) is common for Yul and EVMLA representations.
 
-
+EraVM does not have a similar instruction.
 
 # [EXP](https://www.evm.codes/#0a?fork=shanghai)
 
@@ -304,6 +308,7 @@ exponent_loop_body:
 [The LLVM IR generator code](https://github.com/matter-labs/era-compiler-llvm-context/blob/main/src/eravm/evm/math.rs#L70) is common for Yul and EVMLA representations.
 
 
+EraVM does not have a similar instruction.
 
 # [SIGNEXTEND](https://www.evm.codes/#0b?fork=shanghai)
 
@@ -336,3 +341,5 @@ return:
 ```
 
 [The LLVM IR generator code](https://github.com/matter-labs/era-compiler-llvm-context/blob/main/src/eravm/evm/math.rs#L93) is common for Yul and EVMLA representations.
+
+EraVM does not have a similar instruction.
