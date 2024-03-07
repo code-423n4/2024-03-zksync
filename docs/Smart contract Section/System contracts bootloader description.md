@@ -614,6 +614,10 @@ One of the most expensive resource for a rollup is data availability, so in orde
 
 This contract contains utility methods that are used to verify the correctness of either bytecode or state diff compression. You can read more on how we compress state diffs and bytecodes in the corresponding [document](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
 
+## Pubdata Chunk Publisher
+
+This contract is responsible for separating pubdata into chunks that each fit into a [4844 blob](./Pubdata%20Post%204844.md) and calculating the hash of the preimage of said blob. The hash is then sent to L1 via system logs and used as part of the batch commitment. 
+
 ## CodeOracle
 
 It is a contract that accepts the versioned hash of a bytecode and returns the preimage of it. It is similar to the `extcodecopy` functionality on Ethereum.
