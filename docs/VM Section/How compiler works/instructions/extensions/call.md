@@ -15,7 +15,7 @@ Call types are not validated and do not affect the simulation behavior, unless s
 For some simulations below we assume that there exist a hidden global pseudo-variable called `ACTIVE_PTR` for manipulations, since one can not easily load pointer value into Solidity’s variable.
 
 | Simulated opcode | CALL param 0 (gas) | CALL param 1 (address) | CALL param 2 (value) | CALL param 3 (input offset) | CALL param 4 (input length) | CALL param 5 (output offset) | CALL param 6 (output length) | Return value | call type | LLVM implementation | Motivation |
-| --- | -- | --- | -- | --- | --- | --- | --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | to_l1(is_first, in1, in2) | if_first (bool) | 0xFFFF | in1 (u256) | in2 (u256) | 0xFFFF to prevent optimizing out by Yul | 0 | 0 | _ | call | @llvm.syncvm.tol1(i256 %in1, i256 %in2, i256 %is_first) | Send messages to L1 |
 | code_source | 0 | 0xFFFE | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 | address | staticcall | @llvm.syncvm.context(i256 %param) ; param == 2 (see SyncVM.h) | Largely to be able to catch “delegatecalls” in system contracts (by comparing this == code_source) |
 | precompile(in1, ergs_to_burn, out0) | in1 (u256) | 0xFFFD | - | ergs_to_burn (u32) | 0xFFFF to prevent optimizing out by Yul | 0 | 0 | out0 | staticcall | @llvm.syncvm.precompile(i256 %in1, i256 %ergs) | way to trigger call to precompile in VM |
