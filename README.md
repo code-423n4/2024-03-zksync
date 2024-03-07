@@ -219,7 +219,7 @@ For any clarifications, doubts, or discussion, please contact Code4rena staff, a
 | [system-contracts/contracts/NonceHolder.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/NonceHolder.sol) | 102 |  |
 | [system-contracts/contracts/PubdataChunkPublisher.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/PubdataChunkPublisher.sol) | 37 |  |
 | [system-contracts/contracts/SystemContext.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/SystemContext.sol) | 242 |  |
-| [contracts/GasBoundCaller.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/GasBoundCaller.sol) | 33 |  |
+| [contracts/GasBoundCaller.sol](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/GasBoundCaller.sol) | 33 |  |
 
 ### Precompiles
 
@@ -230,8 +230,8 @@ For any clarifications, doubts, or discussion, please contact Code4rena staff, a
 | [system-contracts/contracts/precompiles/Ecrecover.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/precompiles/Ecrecover.yul) | 68 |  |
 | [system-contracts/contracts/precompiles/Keccak256.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/precompiles/Keccak256.yul) | 67 |  |
 | [system-contracts/contracts/precompiles/SHA256.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/precompiles/SHA256.yul) | 65 |  |
-| [contracts/precompiles/CodeOracle.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/precompiles/CodeOracle.yul) | 66 |  |
-| [contracts/precompiles/P256Verify.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/contracts/precompiles/P256Verify.yul) | 68 |  |
+| [contracts/precompiles/CodeOracle.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/precompiles/CodeOracle.yul) | 66 |  |
+| [contracts/precompiles/P256Verify.yul](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/precompiles/P256Verify.yul) | 68 |  |
 
 
 ### Libraries
