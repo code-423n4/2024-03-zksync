@@ -479,7 +479,7 @@ Note that, unlike Ethereum, keccak256 is a precompile (*not an opcode*) on zkSyn
 
 These system contracts act as wrappers for their respective crypto precompile implementations. They are expected to be used frequently, especially keccak256, since Solidity computes storage slots for mapping and dynamic arrays with its help. That's why we wrote contracts on pure yul with optimizing the short input case. In the past both `sha256` and `keccak256` performed padding within the smart contracts, this is no longer true with `sha256` performing padding in the smart contracts and `keccak256` in the zk-circuits. Hashing is then completed for both within the zk-circuits.
 
-It's important to note that the crypto part of the precompiles expects to work with padded data. This means that a bug in applying padding may lead to an unprovable transaction.
+It's important to note that the crypto part of the `sha256` precompile expects to work with padded data. This means that a bug in applying padding may lead to an unprovable transaction.
 
 ## EcAdd & EcMul
 
