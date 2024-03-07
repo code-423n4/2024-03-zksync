@@ -21,7 +21,7 @@ While there were quite some changes during Boojum upgrade, most of the scheme re
 
 The most important feature that we needed to maintain in Boojum for backward compatibility is to provide a similar Merkle tree of L2→L1 logs with the long L2→L1 messages and priority operations’ status.
 
-Before Boojum, whenever we sent an L2→L1 long message, a *log* was appended to the Merkle tree of L2→L1 messages on L1 due to necessity. In Boojum we maintain this fact. Having the priority operations’ statuses is important to enable [proving](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/bridge/L1ERC20Bridge.sol#L255) failed deposits for bridges.
+Before Boojum, whenever we sent an L2→L1 long message, a *log* was appended to the Merkle tree of L2→L1 messages on L1 due to necessity. In Boojum we maintain this fact. Having the priority operations’ statuses is important to enable [proving](https://github.com/code-423n4/2024-03-zksync/blob/e8527cab32c9fe2e1be70e414d7c73a20d357550/code/contracts/ethereum/contracts/bridge/L1SharedBridge.sol#L303) failed deposits for bridges.
 
 ## Changes with Boojum
 
@@ -75,19 +75,19 @@ To put it shortly, the proofs for L2→L1 log inclusion will continue having exa
 
 ### Implementation of `L1Messenger`
 
-The L1Messenger contract will maintain a rolling hash of all the L2ToL1 logs `chainedLogsHash` as well as the rolling hashes of messages `chainedMessagesHash`. Whenever a contract wants to send an L2→L1 log, the following operation will be [applied](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/L1Messenger.sol#L110):
+The L1Messenger contract will maintain a rolling hash of all the L2ToL1 logs `chainedLogsHash` as well as the rolling hashes of messages `chainedMessagesHash`. Whenever a contract wants to send an L2→L1 log, the following operation will be [applied](https://github.com/code-423n4/2024-03-zksync/blob/e8527cab32c9fe2e1be70e414d7c73a20d357550/code/system-contracts/contracts/L1Messenger.sol#L94):
 
 `chainedLogsHash = keccak256(chainedLogsHash, hashedLog)`. L2→L1 logs have the same 88-byte format as in the current version of zkSync.
 
 Note, that the user is charged for necessary future the computation that will be needed to calculate the final merkle root. It is roughly 4x higher than the cost to calculate the hash of the leaf, since the eventual tree might have be 4x times the number nodes. In any case, this will likely be a relatively negligible part compared to the cost of the pubdata.
 
-At the end of the execution, the bootloader will [provide](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L2470) a list of all the L2ToL1 logs as well as the messages in this block to the L1Messenger (this will be provided by the operator in the memory of the bootloader). The L1Messenger checks that the rolling hash from the provided logs is the same as in the `chainedLogsHash` and calculate the merkle tree of the provided messages. Right now, we always build the Merkle tree of size `2048`, but we charge the user as if the tree was built dynamically based on the number of leaves in there. The implementation of the dynamic tree has been postponed until the later upgrades.
+At the end of the execution, the bootloader will [provide](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/bootloader/bootloader.yul#L4057) a list of all the L2ToL1 logs as well as the messages in this block to the L1Messenger (this will be provided by the operator in the memory of the bootloader). The L1Messenger checks that the rolling hash from the provided logs is the same as in the `chainedLogsHash` and calculate the merkle tree of the provided messages. Right now, we always build the Merkle tree of size `2048`, but we charge the user as if the tree was built dynamically based on the number of leaves in there. The implementation of the dynamic tree has been postponed until the later upgrades.
 
 ### Long L2→L1 messages & bytecodes
 
 Before, the fact that the correct preimages for L2→L1 messages as bytecodes were provided was checked on the L1 side. Now, it is done on L2.
 
-If the user wants to send an L2→L1 message, its preimage is [appended](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/L1Messenger.sol#L125) to the message’s rolling hash too `chainedMessagesHash = keccak256(chainedMessagesHash, keccak256(message))`.
+If the user wants to send an L2→L1 message, its preimage is [appended](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/contracts/L1Messenger.sol#L122) to the message’s rolling hash too `chainedMessagesHash = keccak256(chainedMessagesHash, keccak256(message))`.
 
 A very similar approach for bytecodes is used, where their rolling hash is calculated and then the preimages are provided at the end of the batch to form the full pubdata for the batch.
 
@@ -105,13 +105,13 @@ The only places where the built-in L2→L1 messaging should continue to be used:
 
 ### Obtaining `txNumberInBlock`
 
-To have the same log format, the `txNumberInBlock` must be obtained. While it is internally counted in the VM, there is currently no opcode to retrieve this number. We will have a public variable `txNumberInBlock` in the `SystemContext`, which will be incremented with each new transaction and retrieve this variable from there. It is [zeroed out](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/SystemContext.sol#L458) at the end of the batch.
+To have the same log format, the `txNumberInBlock` must be obtained. While it is internally counted in the VM, there is currently no opcode to retrieve this number. We will have a public variable `txNumberInBlock` in the `SystemContext`, which will be incremented with each new transaction and retrieve this variable from there. It is [zeroed out](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/contracts/SystemContext.sol#L486) at the end of the batch.
 
 ## Bootloader implementation
 
 The bootloader has a memory segment dedicated to the ABI-encoded data of the L1ToL2Messenger to perform the `publishPubdataAndClearState` call.
 
-At the end of the execution of the batch, the operator should provide the corresponding data into the bootloader memory, i.e user L2→L1 logs, long messages, bytecodes, etc. After that, the [call](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L2484) is performed to the `L1Messenger` system contract, that should validate the adherence of the pubdata to the required format
+At the end of the execution of the batch, the operator should provide the corresponding data into the bootloader memory, i.e user L2→L1 logs, long messages, bytecodes, etc. After that, the [call](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/bootloader/bootloader.yul#L4057) is performed to the `L1Messenger` system contract, that should validate the adherence of the pubdata to the required format
 
 # Bytecode Publishing
 
@@ -123,7 +123,7 @@ With Boojum, `factoryDeps` are included within the `totalPubdata` bytes and have
 
 ## Compressed Bytecode Publishing
 
-This part stays the same in a pre and post boojum zkSync. Unlike uncompressed bytecode which are published as part of `factoryDeps`, compressed bytecodes are published as long l2 → l1 messages which can be seen [here](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/Compressor.sol#L80).
+This part stays the same in a pre and post boojum zkSync. Unlike uncompressed bytecode which are published as part of `factoryDeps`, compressed bytecodes are published as long l2 → l1 messages which can be seen [here](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/contracts/Compressor.sol#L73).
 
 ### Bytecode Compression Algorithm — Server Side
 

@@ -4,11 +4,11 @@ This document will assume that you already know how gas & fees work on Ethereum.
 
 On Ethereum, all the computational, as well as storage costs, are represented via one unit: gas. Each operation costs a certain amount of gas, which is generally constant (though it may change during [upgrades](https://blog.ethereum.org/2021/03/08/ethereum-berlin-upgrade-announcement)).
 
-zkSync as well as other L2s have the issue that does not allow the adoption of the same model as the one for Ethereum so easily: the main reason is the requirement for publishing the pubdata on Ethereum. This means that prices for L2 transactions will depend on the volatile L1 gas prices and can not be simply hard coded.
-
 # Main differences from EVM
 
-zkSync, being a zkRollup is required to prove every operation with zero-knowledge proofs. That comes with a few nuances.
+zkSync as well as other L2s have the issue that does not allow the adoption of the same model as the one for Ethereum so easily: the main reason is the requirement for publishing the pubdata on Ethereum. This means that prices for L2 transactions will depend on the volatile L1 gas prices and can not be simply hard coded.
+
+Also, zkSync, being a zkRollup is required to prove every operation with zero-knowledge proofs. That comes with a few nuances.
 
 ## Different opcode pricing
 
@@ -53,7 +53,7 @@ As a conclusion, zkSync Era supports a similar "cold"/"warm" mechanism to EVM, b
 zkSync Era has different memory pricing rules:
 
 - Whenever a user contract is called, `2^12` bytes of memory are given out for free, before starting to charge users linearly according to its length.
-- Whenever a kernel space (i.e., a system) contract is called, `2^20` bytes of memory are given out for free, before starting to charge users linearly according to the length.
+- Whenever a kernel space (i.e., a system) contract is called, `2^21` bytes of memory are given out for free, before starting to charge users linearly according to the length.
 Note that, unlike EVM, we never use a quadratic component of the price for memory expansion.
 
 ## Different intrinsic costs
@@ -89,7 +89,7 @@ Note, that before the transaction is executed, the system can not know how many 
 
 ## `MAX_TRANSACTION_GAS_LIMIT`
 
-A recommended maximal amount of gas that a transaction can spend on computation is `MAX_TRANSACTION_GAS_LIMIT`. But in case the operator trusts the user, the operator may provide the [trusted gas limit](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/bootloader/bootloader.yul#L1137), i.e. the limit which exceeds `MAX_TRANSACTION_GAS_LIMIT` assuming that the operator knows what he is doing. This can be helpful in the case of a hyperchain with different parameters. 
+A recommended maximal amount of gas that a transaction can spend on computation is `MAX_TRANSACTION_GAS_LIMIT`. But in case the operator trusts the user, the operator may provide the [trusted gas limit](https://github.com/code-423n4/2024-03-zksync/blob/e8527cab32c9fe2e1be70e414d7c73a20d357550/code/system-contracts/bootloader/bootloader.yul#L1236), i.e. the limit which exceeds `MAX_TRANSACTION_GAS_LIMIT` assuming that the operator knows what he is doing. This can be helpful in the case of a hyperchain with different parameters. 
 
 ## Derivation of `baseFee` and `gasPerPubdata`
 
@@ -258,9 +258,9 @@ The above assumptions work in the pre-charge model (calldata based rollups) or p
 
 ### How to prevent this issue on the users' side
 
-If a user really needs to limit the amount of gas that the subcall takes, all the subcalls should be routed through a special system contract, that will guarantee that the total cost of the subcall wont be larger than the gas provided (by reverting if needed).
+If a user really needs to limit the amount of gas that the subcall takes, all the subcalls should be routed through a special contract, that will guarantee that the total cost of the subcall wont be larger than the gas provided (by reverting if needed).
 
-TODO: add a link to this system contract
+An implementation of this special contract can be seen [here](../../code/system-contracts//contracts/GasBoundCaller.sol). Note, that this contract is *not* a system one and it will be deployed on some fixed, but not kernel space address.
 
 ### 1. Case of when a malicious contract consumes a large, but processable amount of pubdata**
 
