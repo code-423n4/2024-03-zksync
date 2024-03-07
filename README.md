@@ -1,6 +1,6 @@
 # zkSync Era audit details
 - Total Prize Pool: $250,000 in USDC 
-  - HM awards: $208.526 in USDC 
+  - HM awards: $208,526 in USDC 
   - Analysis awards: $0 in USDC 
   - QA awards: $5,487 in USDC
   - Bot Race awards: $0 USDC 
