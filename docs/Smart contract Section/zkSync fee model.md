@@ -260,7 +260,7 @@ The above assumptions work in the pre-charge model (calldata based rollups) or p
 
 If a user really needs to limit the amount of gas that the subcall takes, all the subcalls should be routed through a special contract, that will guarantee that the total cost of the subcall wont be larger than the gas provided (by reverting if needed).
 
-An implementation of this special contract can be seen [here](../../code/system-contracts//contracts/GasBoundCaller.sol). Note, that this contract is *not* a system one and it will be deployed on some fixed, but not kernel space address.
+An implementation of this special contract can be seen [here](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/GasBoundCaller.sol). Note, that this contract is *not* a system one and it will be deployed on some fixed, but not kernel space address.
 
 ### 1. Case of when a malicious contract consumes a large, but processable amount of pubdata**
 
