@@ -499,6 +499,27 @@ Whenever anyone wants to do a non-zero value call, they need to call `MsgValueSi
 
 More information on the extraAbiParams can be read [here](#flags-for-calls).
 
+### Support for `.send/.transfer`
+
+On Ethereum, whenever a call with non-zero value is done, some additional gas is charged from the caller's frame and in return a `2300` gas stipend is given out to the callee frame. This stipend is usually enough to emit a small event, but it is enforced that it is not possible to change storage within these `2300` gas. This also means that in practice some users might opt to do `call` with 0 gas provided, relying on the `2300` stipend to be passed to the callee. This is the case for `.call/.transfer`.  
+
+While using `.send/.transfer` is generally not recommended, as a step towards better EVM compatibility, since vm1.5.0 a *partial* support of these functions is present with zkSync Era. It is the done via the following means:
+
+- Whenever a call is done to the `MsgValueSimulator` system contract, `27000` gas is deducted from the caller's frame and it passed to the `MsgValueSimulator` on top of whatever gas the user has originally provided. The number was chosen to cover for the execution of the transfering of the balances as well as other constant size operations by the `MsgValueSimulator`. Note, that since it will be the frame of `MsgValueSimulator` that will actually call the callee, the constant must also include the cost for decommitting the code of the callee. Decoding bytecode of any size would be prohibitevely expensive and so we support only callees of size up to `100000` bytes.
+- `MsgValueSimulator` ensures that no more than `2300` out of the stipend above gets to the callee, ensuring the reentrancy protection invariant for these functions holds.
+
+Note, that unlike EVM any unused gas from such calls will be refunded.
+
+The system preserves the following guarantees about `.send/.transfer`:
+- No more than `2300` gas will be received by the callee. Note, [that a smaller, but a close amount](https://github.com/code-423n4/2024-03-zksync/blob/3165e07bab249591404fff36e4802f9921ef168c/code/system-contracts/contracts/test-contracts/TransferTest.sol#L33) may be passed.
+- It is not possible to do any storage changes within this stipend. This is enforced by having cold write cost more than `2300` gas. Also, cold write cost always has to be prepaid whenever executing storage writes. More on it can be read [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md#io-pricing).
+- Any callee with bytecode size of up to `100000` will work.
+
+The system does not guarantee the following:
+- That callees with bytecode size larger than `100000` will work. Note, that a malicious operator can fail any call to a callee with large bytecode even if it has been decommitted before. More on it can be read [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md#io-pricing).
+
+As a conclusion, using `.send/.transfer` should be generally avoided, but when avoiding is not possible it should be used with small callees, e.g. EOAs, which implement [DefaultAccount](https://github.com/code-423n4/2024-03-zksync/blob/main/code/system-contracts/contracts/DefaultAccount.sol).
+
 ## KnownCodeStorage
 
 This contract is used to store whether a certain code hash is “known”, i.e. can be used to deploy contracts. On zkSync, the L2 stores the contract’s code *hashes* and not the codes themselves. Therefore, it must be part of the protocol to ensure that no contract with unknown bytecode (i.e. hash with an unknown preimage) is ever deployed.
