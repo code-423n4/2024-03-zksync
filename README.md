@@ -386,7 +386,7 @@ Then run the tests in the second:
 yarn test
 ```
 
-> :warning: you should rerun the test-node for every tests run
+> :warning: You should rerun the test-node for every tests run
 
 ## (Hardhat) L2 contracts
 
@@ -402,7 +402,7 @@ yarn # if first time
 yarn test
 ```
 
-> :warning: you should rerun the test-node for every tests run
+> :warning: You should rerun the test-node for every tests run
 
 ## Miscellaneous
 
