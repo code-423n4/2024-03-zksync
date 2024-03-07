@@ -3,14 +3,14 @@
 ## Glossary
 
 - Batch - a set of transactions that the bootloader processes (`commitBatches`, `proveBatches`, and `executeBatches` work with it). A batch consists of multiple transactions.
-- L2 block - a non-intersecting sub-set of consecutively executed transactions. This is the kind of block you see in the API. This is the one that will *eventually* be used for `block.number`/`block.timestamp`/etc. This will happen *eventually*, since at the time of this writing the virtual block migration is being [run](#migration--virtual-blocks-logic).
-- Virtual block — blocks the data of which will be returned in the contract execution environment during the migration. They are called “virtual”, since they have no trace in our API, i.e. it is not possible to query information about them in any way.
+- L2 blocks - non-intersecting sub-sets of consecutively executed transactions in a batch. This is the kind of block you see in the API. This is the one that is used for `block.number`/`block.timestamp`/etc. Note that it wasn't this way before the virtual blocks [migration](#migration--virtual-blocks-logic).
+- Virtual block — a block, the data of which was being returned in the contract execution environment during the migration. They are called “virtual”, since they have no trace in our API, i.e. it is not possible to query information about them in any way. This is now mostly irrelevant, since the migration is alredy finished.
 
 ## Motivation
 
-Before the recent upgrade, `block.number`, `block.timestamp`, as well as `blockhash` in Solidity, returned information about *batches*, i.e. large blocks that are proven on L1 and which consist of many small L2 blocks. At the same time, API returns `block.number` and `block.timestamp` as for L2 blocks.
+Before the recent upgrade, `block.number`, `block.timestamp`, as well as `blockhash` in Solidity, returned information about *batches*, i.e. large blocks that are proven on L1 and which consist of many smaller L2 blocks. At the same time, API returns `block.number` and `block.timestamp` as for L2 blocks.
 
-L2 blocks were created for fast soft confirmation on wallets and block explorer. For example, MetaMask shows transactions as confirmed only after the block in which transaction execution was mined. So if the user needs to wait for the batch confirmation it would take at least minutes (for soft confirmation) and hours for full confirmation which is very bad UX. But API could return soft confirmation much earlier through L2 blocks.
+L2 blocks were created for fast soft confirmation in wallets and block explorer. For example, MetaMask shows transactions as confirmed only after the block in which transaction execution was mined. So if the user needs to wait for the batch confirmation it would take at least a few minutes (for soft confirmation) and hours for full confirmation which is very bad UX. But API could return soft confirmation much earlier through L2 blocks.
 
 There was a huge outcry in the community for us to return the information for L2 blocks in `block.number`, `block.timestamp`, as well as `blockhash`, because of discrepancy of runtime execution and returned data by API.
 
@@ -24,11 +24,11 @@ In order to get the returned value for `block.number`, `block.timestamp`, `block
 - `getBlockTimestamp`
 - `getBlockHashEVM`
 
-During the migration process, these will return the values of the virtual blocks. After the migration is complete, they will return values for L2 blocks.
+During the migration process, these returned the values of the virtual blocks. Currently, since the migration is complete, they return values for L2 blocks.
 
 ## Migration status
 
-At the time of this writing, the migration has been complete on testnet, i.e. there we already have only the L2 block information returned. However, the [migration](https://github.com/zkSync-Community-Hub/zkync-developers/discussions/87) on mainnet is still ongoing and most likely will end on late October / early November.
+At the time of this writing, the migration has been complete on both testnet and mainnet, i.e. there we already have only the L2 block information returned. Mainnet migration ended in early November 2023.
 
 # Blocks’ processing and consistency checks
 
@@ -70,7 +70,7 @@ The hash of an L2 block is `keccak256(abi.encode(_blockNumber, _blockTimestamp, 
 
 To add a transaction hash to the current miniblock we use the `appendTransactionToCurrentL2Block` [function](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/SystemContext.sol#L373).
 
-Since zkSync is a state-diff based rollup, there is no way to deduce the hashes of the L2 blocks based on the transactions’ in the batch (because there is no access to the transaction’s hashes). At the same time, in order to server `blockhash` method, the VM requires the knowledge of some of the previous L2 block hashes. In order to save up on pubdata (by making sure that the same storage slots are reused, i.e. we only have repeated writes) we [store](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/SystemContext.sol#L70) only the last 257 block hashes. You can read more on what are the repeated writes and how the pubdata is processed [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
+Since zkSync is a state-diff based rollup, there is no way to deduce the hashes of the L2 blocks based on the transactions’ in the batch (because there is no access to the transaction’s hashes). At the same time, in order to execute `blockhash` method, the VM requires the knowledge of some of the previous L2 block hashes. In order to save up on pubdata (by making sure that the same storage slots are reused, i.e. we only have repeated writes) we [store](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/SystemContext.sol#L70) only the last 257 block hashes. You can read more on what are the repeated writes and how the pubdata is processed [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
 
 We store only the last 257 blocks, since the EVM requires only 256 previous ones and we use 257 as a safe margin.
 
@@ -100,7 +100,7 @@ Also, at the end of the batch we send the timestamps of the batch as well as the
 
 ## Migration & virtual blocks’ logic
 
-As already explained above, for a smoother upgrade for the ecosystem, there is a migration being performed during which instead of returning either batch information or L2 block information, we will return the virtual block information until they catch up with the L2 block’s number.
+As already explained above, for a smoother upgrade for the ecosystem, there was a migration performed during which instead of returning either batch information or L2 block information, we returned the virtual block information until they had caught up with the L2 block’s number.
 
 ### Production of the virtual blocks
 

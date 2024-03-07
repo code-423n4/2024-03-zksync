@@ -4,7 +4,7 @@
 
 This information is requested a System Contract called [SystemContext](https://github.com/matter-labs/system-contracts/blob/main/contracts/SystemContext.sol).
 
-On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
+On how the System Contract is called, see [this section](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 
@@ -20,7 +20,7 @@ The request to the System Contract is done via the [SystemRequest](https://githu
 
 This information is requested a System Contract called [SystemContext](https://github.com/matter-labs/system-contracts/blob/main/contracts/SystemContext.sol).
 
-On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
+On how the System Contract is called, see [this section](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 
@@ -36,7 +36,7 @@ The request to the System Contract is done via the [SystemRequest](https://githu
 
 This information is requested a System Contract called [SystemContext](https://github.com/matter-labs/system-contracts/blob/main/contracts/SystemContext.sol).
 
-On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
+On how the System Contract is called, see [this section](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 
@@ -52,7 +52,7 @@ The request to the System Contract is done via the [SystemRequest](https://githu
 
 This information is requested a System Contract called [SystemContext](https://github.com/matter-labs/system-contracts/blob/main/contracts/SystemContext.sol).
 
-On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
+On how the System Contract is called, see [this section](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 
@@ -68,7 +68,7 @@ The request to the System Contract is done via the [SystemRequest](https://githu
 
 This information is requested a System Contract called [SystemContext](https://github.com/matter-labs/system-contracts/blob/main/contracts/SystemContext.sol).
 
-On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
+On how the System Contract is called, see [this section](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 
@@ -84,7 +84,7 @@ The request to the System Contract is done via the [SystemRequest](https://githu
 
 This information is requested a System Contract called [SystemContext](https://github.com/matter-labs/system-contracts/blob/main/contracts/SystemContext.sol).
 
-On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
+On how the System Contract is called, see [this section](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 
@@ -100,7 +100,7 @@ The request to the System Contract is done via the [SystemRequest](https://githu
 
 This information is requested a System Contract called [SystemContext](https://github.com/matter-labs/system-contracts/blob/main/contracts/SystemContext.sol).
 
-On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
+On how the System Contract is called, see [this section](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 
@@ -112,7 +112,7 @@ The request to the System Contract is done via the [SystemRequest](https://githu
 
 # [SELFBALANCE](https://www.evm.codes/#47?fork=shanghai)
 
-Implemented as [BALANCE](./environment.md#balance) with an [ADDRESS](./environment.md#address) as its argument.
+Implemented as [BALANCE](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions/evm/environment.md#balance) with an [ADDRESS](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions/evm/environment.md#address) as its argument.
 
 
 
@@ -122,7 +122,7 @@ Implemented as [BALANCE](./environment.md#balance) with an [ADDRESS](./environme
 
 This information is requested a System Contract called [SystemContext](https://github.com/matter-labs/system-contracts/blob/main/contracts/SystemContext.sol).
 
-On how the System Contract is called, see [this section](../../system_contracts.md#environmental-data-storage).
+On how the System Contract is called, see [this section](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md#environmental-data-storage).
 
 ### LLVM IR
 

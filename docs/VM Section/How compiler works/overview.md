@@ -31,10 +31,10 @@
 
 ## Concepts
 
-- [Code Separation](./code_separation.md)
-- [System Contracts](./system_contracts.md)
-- [Exception Handling](./exception_handling.md)
-- [EVMLA translator](./evmla_translator.md)
+- [Code Separation](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/code_separation.md)
+- [System Contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md)
+- [Exception Handling](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/exception_handling.md)
+- [EVMLA translator](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/evmla_translator.md)
 
 
 
@@ -142,6 +142,6 @@ At the moment it does not explain much of the LLVM IR and assembly aspects, but 
 | pc | PC | unsupported | - | - | Compile time error |
 | selfdestruct | SELFDESTRUCT | unsupported | - | - | Compile time error |
 
-For more information on how zkSync Era achieves EVM-equivalence, see the [Instructions](./instructions/overview.md) section.
+For more information on how zkSync Era achieves EVM-equivalence, see the [Instructions](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/instructions) section.
 
 For a detailed description of EraVM instruction set, refer to the [list of instructions](https://matter-labs.github.io/eravm-spec/spec.html#AssemblyInstructionSet) and [their meanings](https://matter-labs.github.io/eravm-spec/spec.html#SmallStep) in [EraVM specification](https://matter-labs.github.io/eravm-spec/spec.html)
