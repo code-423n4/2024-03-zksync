@@ -396,7 +396,7 @@ yarn # if first time
 yarn test-node
 ```
 
-Then run the tests(from `code/contracts/zksync`) in the second:
+Then run the tests from the `code/contracts/zksync` in the second:
 ```
 yarn # if first time
 yarn test
