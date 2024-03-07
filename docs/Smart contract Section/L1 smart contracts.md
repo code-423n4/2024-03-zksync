@@ -103,7 +103,7 @@ the transaction execution on L1. The full description of the mechanism for sendi
 
 ### ExecutorFacet
 
-A contract that accepts L2 batches, enforces data availability and checks the validity of zk-proofs. For more information on how pubdata is parsed, processed please refer to this [doc](./Pubdata%20Post%204844.md).
+A contract that accepts L2 batches, enforces data availability and checks the validity of zk-proofs. For more information on how pubdata is parsed, processed please refer to this [doc](./Pubdata%20Post%204844.md) on pubdata post EIP-4844 and this [one](./Handling%20pubdata.md) detailing out the contents.
 
 The state transition is divided into three stages:
 
