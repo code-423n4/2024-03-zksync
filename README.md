@@ -16,9 +16,9 @@
 
 ## Automated Findings / Publicly Known Issues
 
-Automated findings output for the audit can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/code/bot-report.md) within 24 hours of audit opening.
+The 4naly3er report can be found [here](https://github.com/code-423n4/YYYY-MM-contest-candidate/blob/main/4naly3er-report.md).
 
-*Note for C4 wardens: Anything included in the automated findings output is considered a publicly known issue and is ineligible for awards.*
+*Note for C4 wardens: Anything included in the 4naly3er report is considered a publicly known issue and is ineligible for awards.*
 
 ### DefaultAccount does not always return successfully
 
