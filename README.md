@@ -386,6 +386,8 @@ Then run the tests in the second:
 yarn test
 ```
 
+> :warning: you should rerun the test-node for every tests run
+
 ## (Hardhat) L2 contracts
 
 Run the test-node from the `code/system-contracts` in the first terminal:
@@ -399,6 +401,8 @@ Then run the tests(from `code/contracts/zksync`) in the second:
 yarn # if first time
 yarn test
 ```
+
+> :warning: you should rerun the test-node for every tests run
 
 ## Miscellaneous
 
