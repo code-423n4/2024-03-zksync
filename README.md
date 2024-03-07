@@ -374,11 +374,11 @@ rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03
 rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03-zksync.git && cd 2024-03-zksync/code/system-contracts/scripts && yarn --ignore-engines && bash quick-setup.sh
 ```
 
-## Miscellaneous
-
-Employees of zkSync and employees' family members are ineligible to participate in this audit.
 ## (Hardhat) L2 contracts one liner
 
 ```
 rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03-zksync.git && cd 2024-03-zksync/code/contracts/zksync/scripts && yarn --ignore-engines && bash quick-setup.sh
 ```
+## Miscellaneous
+
+Employees of zkSync and employees' family members are ineligible to participate in this audit.
