@@ -479,19 +479,17 @@ Note that, unlike Ethereum, keccak256 is a precompile (*not an opcode*) on zkSyn
 
 These system contracts act as wrappers for their respective crypto precompile implementations. They are expected to be used frequently, especially keccak256, since Solidity computes storage slots for mapping and dynamic arrays with its help. That's why we wrote contracts on pure yul with optimizing the short input case.
 
-The system contracts accept the input and transform it into the format that the zk-circuit expects. This way, some of the work is shifted from the crypto to smart contracts, which are easier to audit and maintain.
-
-Both contracts should apply padding to the input according to their respective specifications, and then make a precompile call with the padded data. All other hashing work will be done in the zk-circuit. It's important to note that the crypto part of the precompiles expects to work with padded data. This means that a bug in applying padding may lead to an unprovable transaction.
+Unlike in past versions, the system contracts will send the data passed in to the zk-circuits where we'll apply the padding needed to be in the correct format before performing the hashing work.
 
 ## EcAdd & EcMul
 
 These precompiles simulate the behaviour of the EVM's EcAdd and EcMul precompiles and are fully implemented in Yul without circuit counterparts. You can read more about them [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Elliptic%20curve%20precompiles.md).
 
-## L2EthToken & MsgValueSimulator
+## L2BaseToken & MsgValueSimulator
 
-Unlike Ethereum, zkEVM does not have any notion of any special native token. That’s why we have to simulate operations with Ether via two contracts: `L2EthToken` & `MsgValueSimulator`.
+Unlike Ethereum, zkEVM does not have any notion of any special native token. That’s why we have to simulate operations with Ether via two contracts: `L2BaseToken` & `MsgValueSimulator`.
 
-`L2EthToken` is a contract that holds the balances of ETH for the users. This contract does NOT provide ERC20 interface. The only method for transferring Ether is `transferFromTo`. It permits only some system contracts to transfer on behalf of users. This is needed to ensure that the interface is as close to Ethereum as possible, i.e. the only way to transfer ETH is by doing a call to a contract with some `msg.value`. This is what `MsgValueSimulator` system contract is for.
+`L2BaseToken` is a contract that holds the balances of ETH for the users. This contract does NOT provide ERC20 interface. The only method for transferring Ether is `transferFromTo`. It permits only some system contracts to transfer on behalf of users. This is needed to ensure that the interface is as close to Ethereum as possible, i.e. the only way to transfer ETH is by doing a call to a contract with some `msg.value`. This is what `MsgValueSimulator` system contract is for.
 
 Whenever anyone wants to do a non-zero value call, they need to call `MsgValueSimulator` with:
 
@@ -616,7 +614,7 @@ This contract contains utility methods that are used to verify the correctness o
 
 ## Pubdata Chunk Publisher
 
-This contract is responsible for separating pubdata into chunks that each fit into a [4844 blob](./Pubdata%20Post%204844.md) and calculating the hash of the preimage of said blob. The hash is then sent to L1 via system logs and used as part of the batch commitment. 
+This contract is responsible for separating pubdata into chunks that each fit into a [4844 blob](./Pubdata%20Post%204844.md) and calculating the hash of the preimage of said blob. If a chunk's size is less than the total number of bytes for a blob, we pad it on the right with zeroes as the circuits will require that the chunk is of exact size. The hash is then sent to L1 via system logs and used as part of the batch commitment.
 
 ## CodeOracle
 
