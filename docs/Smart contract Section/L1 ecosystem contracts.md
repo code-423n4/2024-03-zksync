@@ -32,40 +32,43 @@ The STM has two privileged roles that control its critical functionality:
 
 ## Bridgehub
 
-- Acts as a hub for bridges, so that they have a single point of communication with all hyperchain contracts. This allows L1 assets to be locked in the same contract for all hyperchains, including L3s and validiums. The `Bridgehub` also implements the following:
-    
-    This is where hyperchains can register, starting in a permissioned manner, but with the goal to be permissionless in the future. This is where their `chainID` is determined. L3s will also register here. 
-    
-    This `Registry` is also where base tokens can be registered. Each hyperchain will have a base token that gas fees will be charged in. These external base token contracts will be fully customizable by their owners, they will only have to adhere to the interface with the `SharedBridge` which serves as the main bridge for ERC20 tokens and communicates with the`Bridgehub`.
-    
-    This `Registry` is also where State Transition Manager contracts should register. Each chain has to specify its desired ST when registering (Initially, only one will be available). 
-    
-    ```solidity
+This is a single point of communication with all hyperchain contracts. Instead of going to the specific state transition contract user can route his request by the chainID.  This allows L1 assets to be locked in the same contract for all hyperchains, including L3s and validiums.
+
+The `Bridgehub` also manages the registry for different components:
+* Hyperchain registry: This is where hyperchains can register, starting in a permissioned manner, but to be permissionless in the future. This is where their `chainID` is determined. L3s will also register here.
+* Base token registry: Each hyperchain will have a base token that gas fees will be charged. These external base token contracts will be fully customizable by their owners, they will only have to adhere to the interface with the `SharedBridge` which serves as the main bridge for ERC20 tokens and communicates with the `Bridgehub`.
+* STM registry: Each chain has to specify its desired ST when registering (Initially, only one will be available). 
+
+```solidity
     function createNewChain(
-            uint256 _chainId,
-            address _stateTransitionManager,
-            address _baseToken,
-            uint256 _salt,
-            address _l2Governor,
-            bytes calldata _initData
-        ) external nonReentrant returns (uint256 chainId);
-    
+        uint256 _chainId,
+        address _stateTransitionManager,
+        address _baseToken,
+        uint256 _salt,
+        address _admin,
+        bytes calldata _initData
+    ) external returns (uint256 chainId);
+
     function addStateTransitionManager(address _stateTransitionManager) external;
-    ```
-    
-- `BridgehubMailbox` routes messages to the Diamond proxy’s Mailbox facet based on chainID
-    - This is where L2 transactions can be requested.
-    - Similar as the current zkSync Era [Mailbox](https://github.com/matter-labs/era-contracts/blob/main/ethereum/contracts/zksync/facets/Mailbox.sol), just with chainId as an added parameter, and modified to allow interactions with the baseToken. There are two  external methods, and three structs that need to be known.
-    
-    ```solidity
+
+    function removeStateTransitionManager(address _stateTransitionManager) external;
+
+    function addToken(address _token) external;
+```
+
+That being said, `Bridgehub` routes messages to the State Transition's (Diamond proxy) Mailbox facet based on chainID:
+- This is where L1 -> L2 transactions can be requested.
+- Similar as the current zkSync Era [Mailbox](https://github.com/matter-labs/era-contracts/blob/cc8fe35887e82064cdd0b239c64a3f70fcfc3900/l1-contracts/contracts/zksync/facets/Mailbox.sol), just with chainID as an added parameter, and modified to allow interactions with the baseToken. There are two external methods, and three structs that need to be known.
+
+```solidity
     function requestL2TransactionDirect(
-            L2TransactionRequestDirect calldata _request
-        ) external payable returns (bytes32 canonicalTxHash);
-    
-        function requestL2TransactionTwoBridges(
-            L2TransactionRequestTwoBridgesOuter calldata _request
-        ) external payable returns (bytes32 canonicalTxHash);
-    
+        L2TransactionRequestDirect calldata _request
+    ) external payable returns (bytes32 canonicalTxHash);
+
+    function requestL2TransactionTwoBridges(
+        L2TransactionRequestTwoBridgesOuter calldata _request
+    ) external payable returns (bytes32 canonicalTxHash);
+
     struct L2TransactionRequestDirect {
         uint256 chainId;
         uint256 mintValue;
@@ -77,7 +80,7 @@ The STM has two privileged roles that control its critical functionality:
         bytes[] factoryDeps;
         address refundRecipient;
     }
-    
+
     struct L2TransactionRequestTwoBridgesOuter {
         uint256 chainId;
         uint256 mintValue;
@@ -89,7 +92,7 @@ The STM has two privileged roles that control its critical functionality:
         uint256 secondBridgeValue;
         bytes secondBridgeCalldata;
     }
-    
+
     struct L2TransactionRequestTwoBridgesInner {
         bytes32 magicValue;
         address l2Contract;
@@ -97,12 +100,12 @@ The STM has two privileged roles that control its critical functionality:
         bytes[] factoryDeps;
         bytes32 txDataHash;
     }
-    ```
+```
     
-    - `requestL2TransactionDirect` is similar to the current `requestL2Transaction` function on the `Mailbox`. It requests the transaction specified in `L2TransactionDirect` on the `L2TransactionDirect.chainId` chain. The `mintValue` variable is new, it specifies the  total amount of new base tokens minted on the L2, this includes `l2Value` and the gas fee (on the Mailbox this was specified by `msg.value` ). If the chains base token is ether, then `mintValue` has to be equal to `msg.value`, and this amount of ether is deposited to the `SharedBridge`. If the base token is custom, the `msg.sender` and `mintValue` is passed to the  `SharedBridge`, where a transfer of this amount of tokens is requested from `msg.sender` in the base token contract. The `msg.sender` is also used as the `msg.sender` on the L2 transaction, with the caveat that if it is not an EOA then the address is aliased (to avoid address collisions for smart contracts). The transaction call is sent to the hyperchains `Mailbox`, and the returning `txHash` is returned.
-    - `requestL2TransactionTwoBridges` is slightly more complicated. Here the transfer of  `mintValue` is requested from the `SharedBridge` similarly to `requestL2Transaction`, and the L2 transactions parameters related to this value ( such as `l2Value`, `l2GasLimit`, `l2GasPerPubdataByteLimit`, `refundRecipient`) are specified directly in the call. But to determine the content of the call (`l2Contract`, `l2Calldata`, `factoreyDeps`) a second bridge is called. The `Bridgehub` makes a call to the second bridge, which returns the content of the call, as well as a `magicValue`, for security reasons. The `secondBridgeAddress` is used as the `msg.sender` on the L2Transaction. After the Bridgehub makes the forwards to the hyperchains `Mailbox`, the `txHash` is returned to the `secondBridge`, so that it can store that the tx happened. 
-    
-    The intution behind the `requestL2TransactionTwoBridges` is to allow the second bridge to make a call to the L2 without the user giving control over their baseToken to the contract. If for example, the user wants to deposit an alt token using the second bridge to the L2, then the user only has to approve a base token allowance for the base token bridge, and a alt token allowance for the second bridge. Having the second bridge not handle tokens makes the process simpler and more secure.
+- `requestL2TransactionDirect` is similar to the current `requestL2Transaction` function on the `Mailbox`. It requests the transaction specified in `L2TransactionDirect` on the `L2TransactionDirect.chainId` chain. The `mintValue` variable is new, it specifies the  total amount of new base tokens minted on the L2, this includes `l2Value` and the gas fee (on the Mailbox this was specified by `msg.value`). If the chains base token is ether, then `mintValue` has to be equal to `msg.value`, and this amount of ether is deposited to the `SharedBridge`. If the base token is custom, the `msg.sender` and `mintValue` is passed to the  `SharedBridge`, where a transfer of this amount of tokens is requested from `msg.sender` in the base token contract. The `msg.sender` is also used as the `msg.sender` on the L2 transaction, with the caveat that if it is not an EOA then the address is aliased (to avoid address collisions for smart contracts). The transaction call is sent to the hyperchains `Mailbox`, and the returning `txHash` is returned.
+- `requestL2TransactionTwoBridges` is slightly more complicated. Here the transfer of  `mintValue` is requested from the `SharedBridge` similarly to `requestL2Transaction`, and the L2 transactions parameters related to this value ( such as `l2Value`, `l2GasLimit`, `l2GasPerPubdataByteLimit`, `refundRecipient`) are specified directly in the call. But to determine the content of the call (`l2Contract`, `l2Calldata`, `factoreyDeps`) a second bridge is called. The `Bridgehub` makes a call to the second bridge, which returns the content of the call, as well as a `magicValue`, for security reasons. The `secondBridgeAddress` is used as the `msg.sender` on the L2Transaction. After the Bridgehub makes the forwards to the hyperchains `Mailbox`, the `txHash` is returned to the `secondBridge`, so that it can store that the tx happened.
+
+The intution behind the `requestL2TransactionTwoBridges` is to allow the second bridge to make a call to the L2 without the user giving control over their baseToken to the contract. If for example, the user wants to deposit an alt token using the second bridge to the L2, then the user only has to approve a base token allowance for the base token bridge, and a alt token allowance for the second bridge. Having the second bridge not handle tokens makes the process simpler and more secure.
 
 ## Bridges
 
