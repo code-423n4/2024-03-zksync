@@ -156,8 +156,7 @@ To simplify the codebase we've chosen the following constants:
 We've used roughly the following formulae to derive these values:
 
 1. `TX_OVERHEAD_GAS = MAX_GAS_PER_BATCH / MAX_TXS_IN_BATCH`. For L1->L2 transactions we used the `MAX_GAS_PER_BATCH = 80k` and `MAX_TXS_IN_BATCH = 10k`. `MAX_GAS_PER_BATCH / MAX_TXS_IN_BATCH = 8k`, while we decided to use the 10k value to better take into account the load on the operator from storing the information about the transaction.
-2. `TX_MEMORY_OVERHEAD_GAS = MAX_GAS_PER_BATCH / MAX_MEMORY_FOR_BATCH`. For L1->L2 transactions we used the `MAX_GAS_PER_BATCH = 80k` and `MAX_MEMORY_FOR_BATCH = 32 * 600k`.
-> (??600k or 600?).
+2. `TX_MEMORY_OVERHEAD_GAS = MAX_GAS_PER_BATCH / MAX_MEMORY_FOR_BATCH`. For L1->L2 transactions we used the `MAX_GAS_PER_BATCH = 80k` and `MAX_MEMORY_FOR_BATCH = 32 * 600_000`.
 
 `MAX_GAS_PER_BATCH / MAX_MEMORY_FOR_BATCH = 4`, while we decided to use the `10` gas value to better take into account the load on the operator from storing the information about the transaction.
 
