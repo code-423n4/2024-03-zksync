@@ -11,7 +11,8 @@
     "ethers": "^5.7.0",
     "fast-glob": "^3.3.2",
     "hardhat": "^2.18.3",
-    "preprocess": "^3.2.0"
+    "preprocess": "^3.2.0",
+    "zksync-ethers": "https://github.com/kelemeno/zksync-ethers#ethers-v5-feat/bridgehub"
   },
   "devDependencies": {
     "@matterlabs/hardhat-zksync-chai-matchers": "^0.1.4",
@@ -34,8 +35,8 @@
     "ts-node": "^10.1.0",
     "typechain": "^4.0.0",
     "typescript": "^4.6.4",
-    "zksync-ethers": "^5.0.0",
-    "zksync-web3": "^0.17.1"
+    "zksync-ethers": "https://github.com/kelemeno/zksync-ethers#ethers-v5-feat/bridgehub",
+    "zksync-web3": "^0.15.4"
   },
   "mocha": {
     "timeout": 240000,
