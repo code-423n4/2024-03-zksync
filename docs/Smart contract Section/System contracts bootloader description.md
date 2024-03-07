@@ -114,7 +114,7 @@ These opcodes are allowed only for contracts in kernel space (i.e. system contr
 
 Note, that currently we do not have access to the `tx_counter` within VM (i.e. for now it is possible to increment it and it will be automatically used for logs such as `event`s as well as system logs produced by `to_l1`, but we can not read it). We need to read it to publish the *user* L2→L1 logs, so `increment_tx_counter` is always accompanied by the corresponding call to the [SystemContext](#systemcontext) contract.
 
-More on the difference between system and user logs can be read [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
+More on the difference between system and user logs can be read [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata.md).
 
 ### **Generally accessible**
 
@@ -305,7 +305,7 @@ The batch information slots [are used at the beginning of the batch](https://git
 
 ### L1Messenger Pubdata
 
-- `[135653..586652]` – slots where the final batch pubdata is supplied to be verified by the L1Messenger. More on how the L1Messenger system contracts handles the pubdata can be read [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
+- `[135653..586652]` – slots where the final batch pubdata is supplied to be verified by the L1Messenger. More on how the L1Messenger system contracts handles the pubdata can be read [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata.md).
 
 But briefly, this space is used for the calldata to the L1Messenger’s `publishPubdataAndClearState` function, which accepts the list of the user L2→L1 logs, published L2→L1 messages as well as bytecodes. It also takes the list of full state diff entries, which describe how each storage slot has changed as well as compressed state diffs. This method will then check the correctness of the provided data and publish the hash of the correct pubdata to L1.
 
@@ -415,7 +415,7 @@ Also, we [set](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f
 
 After that, we publish the hash as well as the number of priority operations in this batch. More on it [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md).
 
-Then, we call the L1Messenger system contract for it to compose the pubdata to be published on L1. You can read more about the pubdata processing [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
+Then, we call the L1Messenger system contract for it to compose the pubdata to be published on L1. You can read more about the pubdata processing [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata.md).
 
 # System contracts
 
@@ -582,7 +582,7 @@ A contract used for sending arbitrary length L2→L1 messages from zkSync to L1.
 
 The L1 messenger receives a message, hashes it and sends only its hash as well as the original sender via L2→L1 log. Then, it is the duty of the L1 smart contracts to make sure that the operator has provided full preimage of this hash in the commitment of the batch.
 
-The `L1Messenger` is also responsible for validating the total pubdata to be sent on L1. You can read more about it [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
+The `L1Messenger` is also responsible for validating the total pubdata to be sent on L1. You can read more about it [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata.md).
 
 ## NonceHolder
 
