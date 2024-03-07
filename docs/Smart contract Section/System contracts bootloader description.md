@@ -652,7 +652,7 @@ Note, that the decommitment process does not only happen using the `decommit` op
 
 ## P256Verify
 
-This contract exerts the same behavior as the P256Verify precompile from [RIP7212](https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md). Note, that since Era has different gas schedule, we do not comply with the gas costs, but otherwise the interface is indentical.
+This contract exerts the same behavior as the P256Verify precompile from [RIP-7212](https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md). Note, that since Era has different gas schedule, we do not comply with the gas costs, but otherwise the interface is indentical.
 
 ## GasBoundCaller
 
