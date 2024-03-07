@@ -361,7 +361,7 @@ These are memory slots that are used purely for debugging purposes (when the VM 
 
 ### **Result ptr pointer**
 
-- [927500..928523]
+- `[927500..928523]`
 
 These are memory slots that are used to track the success status of a transaction. If the transaction with number `i` succeeded, the slot `2^19 - 1024 + i` will be marked as 1 and 0 otherwise.
 
