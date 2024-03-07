@@ -2,7 +2,7 @@
 
 This document explains some peculiarities of the exception handling (EH) in zkEVM architecture.
 
-In a nutshell, there are two EH mechanisms in zkEVM: contract-level and function-level.
+In a nutshell, there are two exception handling mechanisms in zkEVM: contract-level and function-level.
 The former was inherited from the EVM architecture, and the latter is more common to general-purpose languages.
 
 |  | Contract Level | Function Level |

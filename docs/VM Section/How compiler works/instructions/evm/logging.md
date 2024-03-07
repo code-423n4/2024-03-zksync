@@ -15,7 +15,7 @@ See [EraVM instruction: `log.event`](https://matter-labs.github.io/eravm-spec/sp
 
 ### System Contract
 
-This information is requested a System Contract called [EventWriter](https://github.com/matter-labs/system-contracts/blob/main/contracts/EventWriter.sol).
+This information is requested a System Contract called [EventWriter](https://github.com/code-423n4/2023-10-zksync/blob/main/code/system-contracts/contracts/EventWriter.yul).
 
 On how the System Contract is called, see [this section](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/system_contracts.md).
 
