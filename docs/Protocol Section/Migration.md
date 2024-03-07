@@ -1,5 +1,7 @@
 # Migration
 
+This document describes the process of migrating the currently deployed single chain zkSync Era into the Hyperchain, including the process of moving funds from Diamond Proxy and L1 ERC20 Bridge into the brand new Shared bridge while ensuring security guarantees. Issues related to the migration process are considered in the scope of the contest.
+
 ## Introduction
 
 We will migrate the old system of Era's `Diamond Proxy`, `L1ERC20Bridge` to a system that is capable of hosting multiple interoperable hyperchains with the `L1SharedBridge`, `Bridgehub`, `StateTransitionManager` and other contracts. 
