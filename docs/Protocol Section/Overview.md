@@ -37,3 +37,8 @@ zkSync Era protocol consists of the following critical components:
 While this contest primarily focuses on the smart contracts side of zkSync Era, understanding the interaction between different components can be beneficial. For additional context or insights, consider exploring these resources:
 * Node Implementation: https://github.com/matter-labs/zksync-era
 * ZK Circuits: https://github.com/matter-labs/era-zkevm_circuits
+
+
+## The Hyperchain
+
+The Hyperchain is the continuation of Ethereum's rollup centric roadmap. Ethereum provides security via DA and verification of proofs, but the question of execution is left to the rollups. In order to have the best UX, it is necessary to solve interoperability and the free flow of assets between chains. We do this via the Shared Bridge Contract on L1 which stores Ether and ERC20 tokens for all hyperchains (implementing custom bridges is still possible). This upgrade will allow hyperbridging between hyperchains in the next major upgrade. The chains will be able to trust each other due to the fact that they are managed by the same STM contract, using the same VM and proof system. In the future more upgrades will follow, as this is still a topic under heavy research. 
