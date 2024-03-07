@@ -19,7 +19,7 @@ For some simulations below we assume that there exist a hidden global pseudo-var
 | to_l1(is_first, in1, in2) | if_first (bool) | 0xFFFF | in1 (u256) | in2 (u256) | 0xFFFF to prevent optimizing out by Yul | 0 | 0 | _ | call | @llvm.syncvm.tol1(i256 %in1, i256 %in2, i256 %is_first) | Send messages to L1 |
 | code_source | 0 | 0xFFFE | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 | address | staticcall | @llvm.syncvm.context(i256 %param) ; param == 2 (see SyncVM.h) | Largely to be able to catch “delegatecalls” in system contracts (by comparing this == code_source) |
 | precompile(in1, ergs_to_burn, out0) | in1 (u256) | 0xFFFD | - | ergs_to_burn (u32) | 0xFFFF to prevent optimizing out by Yul | 0 | 0 | out0 | staticcall | @llvm.syncvm.precompile(i256 %in1, i256 %ergs) | way to trigger call to precompile in VM |
-| decommit(versioned_hash, ergs_to_burn, out0) | versioned_hash (u256) | 0xFFDD | - | ergs_to_burn (u32) | 0xFFFF to prevent optimizing out by Yul | 0 | 0 | out0 | staticcall |  | way to trigger deommit in VM |
+| decommit(versioned_hash, ergs_to_burn, out0) | versioned_hash (u256) | 0xFFDD | - | ergs_to_burn (u32) | 0xFFFF to prevent optimizing out by Yul | 0 | 0 | out0 | staticcall | saves the result pointer to @ptr_decommit | way to trigger deommit in VM |
 | meta | 0 | 0xFFFC | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 | [u256 tight packing](https://github.com/matter-labs/EraVM_opcode_defs/blob/b000abebc27f88919e0087b7604b8c71ba5b3daf/src/definitions/abi/meta.rs#L6) | staticcall | @llvm.syncvm.context(i256 %param) ; param == 3 (see SyncVM.h) | way to trigger call to meta information about some small pieces of the state in VM |
 | mimic_call(to, abi_data, implicit r5 = who to mimic) | who_to_call | 0xFFFB | 0 | abi_data | who_to_mimic | 0 | 0 | WILL mess up the registers and WILL use r1-r4 for our standard ABI convention and r5 for the extra who_to_mimic argument | any in the code; mimic call in the bytecode | Runtime *{i256, i1} __mimiccall(i256, i256, i256, *{i256, i1}) |  |
 | system_mimic_call(to, abi_data, implicit r3, r4, r5 = who to mimic) | who_to_call | 0xFFFA | 0 | abi_data | who_to_mimic | value_to_put_into_r3 | value_to_put_into_r4 | WILL mess up the registers and WILL use r1-r4 for our standard ABI convention and r5 for the extra who_to_mimic argument | any in the code; mimic call in the bytecode | Runtime *{i256, i1} __mimiccall(i256, i256, i256, *{i256, i1}) |  |
@@ -48,13 +48,13 @@ For some simulations below we assume that there exist a hidden global pseudo-var
 | ptr_data_load | offset | 0xFFE4 | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  |  |
 | ptr_data_copy | destination | 0xFFE3 | - | source | size | 0 | 0 |  | staticcall |  |  |
 | ptr_data_size | 0 | 0xFFE2 | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  |  |
-| active_ptr_swap | index_1 | 0xFFD9 | - | index_2 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
-| const_array_declare | index(constant) | 0xFFE1 | - | size(constant) | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
-| const_array_set | index(constant) | 0xFFE0 | - | offset(constant) | 0xFFFF to prevent optimizing out by Yul | value(constant) | 0 |  | staticcall |  | |
-| const_array_finalize | index(constant) | 0xFFDF | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
-| const_array_get | index(constant) | 0xFFDE | - | offset | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
-| return_forward | 0 | 0xFFDB | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
-| revert_forward | 0 | 0xFFDA | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
+| active_ptr_swap | index_1 | 0xFFD9 | - | index_2 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall | swaps active pointers |  |
+| const_array_declare | index(constant) | 0xFFE1 | - | size(constant) | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  |  |
+| const_array_set | index(constant) | 0xFFE0 | - | offset(constant) | 0xFFFF to prevent optimizing out by Yul | value(constant) | 0 |  | staticcall |  |  |
+| const_array_finalize | index(constant) | 0xFFDF | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  |  |
+| const_array_get | index(constant) | 0xFFDE | - | offset | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  |  |
+| return_forward | 0 | 0xFFDB | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall | generates a return forwarding the active pointer |  |
+| revert_forward | 0 | 0xFFDA | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall | generates a revert forwarding the active pointer |  |
 
 ### Requirements for calling system contracts
 

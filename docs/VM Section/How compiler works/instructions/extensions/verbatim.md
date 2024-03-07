@@ -17,7 +17,7 @@ For some simulations below we assume that there exist a hidden global pseudo-var
 | [to_l1](https://matter-labs.github.io/eravm-spec/spec.html#ToL1Definition)(is_first, in0, in1) | verbatim_3i_0o("to_l1", ...) | if_first (bool) | in0 (u256) | in1 (u256) |  |  |  |  | _ | @llvm.syncvm.tol1(i256 %in0, i256 %in1, i256 %is_first) |
 | [code_source](https://matter-labs.github.io/eravm-spec/spec.html#ContextDefinitions) | verbatim_0i_1o("code_source", ...) |  |  |  |  |  |  |  | address | @llvm.syncvm.context(i256 %param) ; param == 2 (see SyncVM.h) |
 | [precompile](https://matter-labs.github.io/eravm-spec/spec.html#PrecompileCallDefinition)(in0, ergs_to_burn, out0) | verbatim_2i_1o("precompile", ...) | in0 (u256) | ergs_to_burn (u32) |  |  |  |  |  | out0 | @llvm.syncvm.precompile(i256 %in0, i256 %ergs) |
-| decommit(versioned_hash, ergs_to_burn, out0) | verbatim_2i_1o("decommit", ...) | versioned_hash (u256) | ergs_to_burn (u32) | | | | | | success, saves the decommit result to @ptr_decommit | |
+| decommit(versioned_hash, ergs_to_burn, out0) | verbatim_2i_1o("decommit", ...) | versioned_hash (u256) | ergs_to_burn (u32) | | | | | | out0, saves the decommit result to @ptr_decommit |  |
 | [meta](https://matter-labs.github.io/eravm-spec/spec.html#ContextDefinitions) | verbatim_0i_1o("meta", ...) |  |  |  |  |  |  |  | u256 | @llvm.syncvm.context(i256 %param) ; param == 3 (see SyncVM.h) |
 | [mimic_call](https://matter-labs.github.io/eravm-spec/spec.html#FarCalls)(to, abi_data, implicit r3 = who to mimic) | verbatim_3i_1o("mimic_call", ...) | who_to_call | who_to_mimic | abi_data |  |  |  |  | It is a call, so it WILL mess up the registers and WILL use r1-r4 for our standard ABI convention and r5 for the extra who_to_mimic argument. | Runtime *{i256, i1} __mimiccall(i256, i256, i256, *{i256, i1}) |
 | [system_mimic_call](https://matter-labs.github.io/eravm-spec/spec.html#FarCalls)(to, abi_data, implicit r3, r4, r5 = who to mimic) | verbatim_7i_1o("system_mimic_call", ...) | who_to_call | who_to_mimic | abi_data | value_to_put_into_r3 | value_to_put_into_r4 | value_to_put_into_r5 | value_to_put_into_r6 | It is a call, so it WILL mess up the registers and WILL use r1-r4 for our standard ABI convention and r5 for the extra who_to_mimic argument. | Runtime *{i256, i1} __system_mimiccall(i256, i256, i256, i256, i256, *{i256, i1}) |
@@ -34,7 +34,7 @@ For some simulations below we assume that there exist a hidden global pseudo-var
 | [event_write](https://matter-labs.github.io/eravm-spec/spec.html#EventDefinition) | verbatim_2i_0o("event_write", ...) | in0 (u256) | in1 (u256) |  |  |  |  |  |  |  |
 | load_calldata_into_active_ptr | verbatim_0i_0o("calldata_ptr_to_active", ...) |  |  |  |  |  |  |  | loads value of @calldataptr (from r1 into virtual ACTIVE_PTR) |  |
 | load_returndata_into_active_ptr | verbatim_0i_0o("return_data_ptr_to_active", ...) |  |  |  |  |  |  |  | loads value of the latest @returndataptr (from r1 into virtual ACTIVE_PTR) |  |
-| load_decommit_into_active_ptr | verbatim_0i_0o("decommit_ptr_to_active", ...) | | | | | | | | loads value of the @ptr_decommit | |
+| load_decommit_into_active_ptr | verbatim_0i_0o("decommit_ptr_to_active", ...) |  |  |  |  |  |  |  | loads value of the @ptr_decommit into virtual ACTIVE_PTR |  |
 | [ptr_add_into_active](https://matter-labs.github.io/eravm-spec/spec.html#PtrAddDefinition) | verbatim_1i_0o("active_ptr_add_assign", ...) | offset |  |  |  |  |  |  | performs ptr.add ACTIVE_PTR, in1, ACTIVE_PTR |  |
 | [ptr_shrink_into_active](https://matter-labs.github.io/eravm-spec/spec.html#PtrShrinkDefinition) | verbatim_1i_0o("active_ptr_shrink_assign", ...) | offset |  |  |  |  |  |  | performs ptr.shrink ACTIVE_PTR, in1, ACTIVE_PTR |  |
 | [ptr_pack_into_active](https://matter-labs.github.io/eravm-spec/spec.html#PtrPackDefinition) | verbatim_1i_0o("active_ptr_pack_assign", ...) | data |  |  |  |  |  |  | performs ptr.pack ACTIVE_PTR, in1, ACTIVE_PTR |  |
@@ -44,9 +44,9 @@ For some simulations below we assume that there exist a hidden global pseudo-var
 | ptr_data_copy | verbatim_3i_0o("active_ptr_data_copy", ...) | destination | source | size |  |  |  |  | Uses the active pointer. |  |
 | ptr_data_size | verbatim_0i_1o("active_ptr_data_size", ...) |  |  |  |  |  |  |  | Uses the active pointer. |  |
 | throw | verbatim_0i_0o("throw", ...)  |  |  |  |  |  |  |  | Throws a local LLVM exception |  |
-| active_ptr_return_forward | verbatim_0i_0o("active_ptr_return_forward", ...) | | | | | | | | Generates a return forwarding the active pointer | |
-| active_ptr_revert_forward | verbatim_0i_0o("active_ptr_revert_forward", ...) | | | | | | | | Generates a revert forwarding the active pointer | |
-| active_ptr_swap | verbatim_2i_0o("active_ptr_swap", ...) | index_1 | index_2 | | | | | | Swaps active pointers | |
+| active_ptr_return_forward | verbatim_0i_0o("active_ptr_return_forward", ...) |  |  |  |  |  |  |  | Generates a return forwarding the active pointer |  |
+| active_ptr_revert_forward | verbatim_0i_0o("active_ptr_revert_forward", ...) |  |  |  |  |  |  |  | Generates a revert forwarding the active pointer |  |
+| active_ptr_swap | verbatim_2i_0o("active_ptr_swap", ...) | index_1 | index_2 |  |  |  |  |  | Swaps active pointers |  |
 
 ### List of globals (zero-enumerated in the order below for purposes of `get_global`):
 
