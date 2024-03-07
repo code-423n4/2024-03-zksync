@@ -52,7 +52,7 @@ For some simulations below we assume that there exist a hidden global pseudo-var
 | const_array_declare | index(constant) | 0xFFE1 | - | size(constant) | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
 | const_array_set | index(constant) | 0xFFE0 | - | offset(constant) | 0xFFFF to prevent optimizing out by Yul | value(constant) | 0 |  | staticcall |  | |
 | const_array_finalize | index(constant) | 0xFFDF | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
-| const_array_get | index(constant) | 0xFFDE | - | offset(constant) | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
+| const_array_get | index(constant) | 0xFFDE | - | offset | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
 | return_forward | 0 | 0xFFDB | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
 | revert_forward | 0 | 0xFFDA | - | 0 | 0xFFFF to prevent optimizing out by Yul | 0 | 0 |  | staticcall |  | |
 
