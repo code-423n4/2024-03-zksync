@@ -1,6 +1,6 @@
 # L1 Smart contracts
 
-This section delves into the zkSync Era smart contracts, describing how they facilitate interactions between Ethereum (Layer 1) and hyperchain instances (Layer 2) within zkSync Era ecosystem. While we provide overview of zkSync Era smart contracts here, it's important to note that this document does *NOT* cover the Hyperchain architecture - communication between multiple rollups and shared liqudity in details. For information on the Hyperchain and its functionalities, please refer to [Hyperchain Documentation](TODO).
+This section delves into the zkSync Era smart contracts, describing how they facilitate interactions between Ethereum (Layer 1) and hyperchain instances (Layer 2) within zkSync Era ecosystem. While we provide overview of zkSync Era smart contracts here, it's important to note that this document does *NOT* cover the Hyperchain architecture - communication between multiple rollups and shared liqudity in details. For information on the Hyperchain and its functionalities, please refer to [Ecosystem contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/L1%20ecosystem%20contracts.md).
 
 ## Diamond (also mentioned as State Transition contract)
 
@@ -96,10 +96,10 @@ with the funds. To withdraw funds user should call `withdraw` function on the `L
 burn the funds on L2, allowing the user to reclaim them through the `finalizeWithdrawal` function on the
 `SharedBridge` (more in hyperchain section).
 
-More about L1->L2 operations can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/Handling%20L1→L2%20ops%20on%20zkSync.md).
+More about L1->L2 operations can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1→L2%20ops%20on%20zkSync.md).
 
 L2 -> L1 communication, in contrast to L1 -> L2 communication, is based only on transferring the information, and not on
-the transaction execution on L1. The full description of the mechanism for sending information from L2 to L1 can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
+the transaction execution on L1. The full description of the mechanism for sending information from L2 to L1 can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md).
 
 ### ExecutorFacet
 
@@ -154,25 +154,6 @@ diamond constructor and is not saved in the diamond as a facet.
 
 Implementation detail - function returns a magic value just like it is designed in
 [EIP-1271](https://eips.ethereum.org/EIPS/eip-1271), but the magic value is 32 bytes in size.
-
-## Governance
-
-This contract manages calls for all governed zkSync Era contracts on L1 and L2. Mostly, it is used for upgradability and changing critical system parameters. The contract has minimum delay settings for the call execution. 
-
-Each upgrade consists of two steps:
-
-- Scheduling - The owner can schedule upgrades in two different manners:
-    - Fully transparent data. All the targets, calldata, and upgrade conditions are known to the community before upgrade execution.
-    - Shadow upgrade. The owner only shows the commitment to the upgrade. This upgrade type is mostly useful for fixing critical issues in the production environment.
-- Upgrade execution - the Owner or Security council can perform the upgrade with previously scheduled parameters.
-    - Upgrade with delay. Scheduled operations should elapse the delay period. Both the owner and Security Council can execute this type of upgrade.
-    - Instant upgrade. Scheduled operations can be executed at any moment. Only the Security Council can perform this type of upgrade.
-
-Only Owner can cancel the upgrade before its execution. 
-
-The diagram below outlines the complete journey from the initiation of an operation to its execution.
-
-![governance.png](L1%20smart%20contracts/Governance-scheme.jpg)
 
 ## ValidatorTimelock
 

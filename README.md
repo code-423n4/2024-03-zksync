@@ -57,23 +57,23 @@ As part of this security audit, we are focusing on the changes and updates made 
 
 Relevant Documentation:
 
-- **[Protocol overview](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Overview.md)**
-- **[L1 smart contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/L1%20smart%20contracts.md)**
-- **[System Contracts/Bootloader Description](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/System%20contracts%20bootloader%20description.md)**
-- **[zkSync Era Fee Model](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/zkSync%20fee%20model.md)**
-- **[Handling L1→L2 Ops on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/Handling%20L1→L2%20ops%20on%20zkSync.md)**
-- **[Batches & L2 Blocks on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md)**
-- **[Elliptic Curve Precompiles](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/Elliptic%20curve%20precompiles.md)**
-- **[Handling Pubdata in Boojum](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md)**
-- **[Pubdata post EIP-4844](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/Smart%20contract%20Section/Pubdata%20Post%204844.md)**
+- **[Protocol overview](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Overview.md)**
+- **[L1 smart contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/L1%20smart%20contracts.md)**
+- **[System Contracts/Bootloader Description](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/System%20contracts%20bootloader%20description.md)**
+- **[zkSync Era Fee Model](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/zkSync%20fee%20model.md)**
+- **[Handling L1→L2 Ops on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1→L2%20ops%20on%20zkSync.md)**
+- **[Batches & L2 Blocks on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md)**
+- **[Elliptic Curve Precompiles](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Elliptic%20curve%20precompiles.md)**
+- **[Handling Pubdata in Boojum](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md)**
+- **[Pubdata post EIP-4844](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Pubdata%20Post%204844.md)**
 
 ### **2. VM Section**
 
 The VM section is related to the zkSync Era Virtual Machine.
 
-- **[ZkSync Era Virtual Machine Primer](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/VM%20Section/ZkSync%20Era%20Virtual%20Machine%20primer.md)**
+- **[ZkSync Era Virtual Machine Primer](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/ZkSync%20Era%20Virtual%20Machine%20primer.md)**
     - This primer is designed to provide auditors with a foundational understanding of the zkSync Era Virtual Machine. It offers insights into the operational mechanics and integral components of EraVM, serving as an essential guide for those seeking to explore the zkSync EraVM environment.
-- **[zkSync Era: The Equivalence Compiler Documentation](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/zkSync%20Era/VM%20Section/How%20compiler%20works/overview.md)**
+- **[zkSync Era: The Equivalence Compiler Documentation](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/VM%20Section/How%20compiler%20works/overview.md)**
     - The document describes how zkSync Solidity compiler represents high-level programming language constructions into low-level EraVM instruction set, how to use unique features without extending Solidity language with new syntax and why system contracts are needed.
 
 ## **🚀 Getting Started for Auditors**

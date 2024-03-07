@@ -1,11 +1,38 @@
 # Ecosystem contracts
 
+This document described technical details of zkStack contracts that make it possible for multiple L2/L3 chains to share liquidity, and provide cost-effective communication among them. Before delving into the details of ecosystem contracts, please familiarize yourself with the concept of [Hyperchain](TODO) and read [L1 smart contracts page](TODO) for a better understanding of single instance hyperchain.
+
+These contracts are a part of the hyperchain upgrade and are not yet in production.
+
 ![Hyperchain contracts](L1%20smart%20contracts/Hyperchain-scheme.png)
+
+## State Transition
+
+The State Transition contract is the source of truth of L2/L3 chain to Ethereum, it maintains all batch information pertinent to a specific chain, holds messages sent from the chain to Ethereum, performs the state transition (submit information to the DA layer, verifies the proof and finalize the state). In the context of the currently deployed zkSync Era, it functions as a main diamond proxy.
+
+For an in-depth understanding of how this interacts with the L1 smart contracts and their operations, please refer to the documentation on the [L1 Smart Contracts](TODO) page.
+
+> **NOTE**: Currently deployed zkSync Era also holds ether deposited to the system. After this upgrade, all state transition contracts, including zkSync Era diamond proxy, will no longer directly manage any funds. Instead, this responsibility will transition to the shared bridge. For details on how this migration will be implemented, please refer to [migration doc](TODO). This document described technical details of zkStack contracts that make it possible for multiple L2/L3 chains to share liquidity, and provide cost-effective communication among them. Before delving into the details of ecosystem contracts, please familiarize yourself with the concept of [Hyperchain](TODO) and read [L1 smart contracts page](TODO) for a better understanding of single instance hyperchain.
+
+## STM (State Transition Manager)
+
+Each State Transition contract controlled by the STM. While a single STM can manage multiple chains, each chain is only managed by one STM. Please note that currently there's only one STM version for all hyperchains, but other will be added in the future.
+
+The first version of STM incorporates safeguarding features to limit the power of the chain validator and prevent unexpected issues. When the code proves its maturity these security features will be removed. As an example of such features, this STM version enforces each chain has a Validator Timelock. This means chain finalization is delayed by a few hours, giving zkSync governance time to address any security problems by freezing the chain and applying security upgrades when needed.
+
+`StateTransitionManager` is responsible for:
+* Creating new chains: It's responsible for adding new chains to the ecosystem. This process involves setting up the State Transition contract in response to requests from `BridgeHub` (defined later). The STM ensures that the setup adheres to system rules, preventing modification to the system that allows actions like withdrawing more funds than what was deposited.
+* Upgrade mechanism: STM saves the protocol upgrade version together with upgrade data, so State Transition can validate that the upgrade was approved by zkSync Governance.
+* Freezability: One of the STM's key powers is to temporarily halt operations on a chain if a security threat is detected. This freezing capability is vital for mitigating risks and addressing vulnerabilities in a timely manner for the period.
+* Reverting batches: In response to discovered bugs or security loopholes, the STM can revert chain batches. Together with `ValidatorTimelock` in place, this allows continue to monitor the chain activity and have time to react to suspicious activity.
+
+The STM has two privileged roles that control its critical functionality:
+* owner - Controlled by `Governance.sol`. In its turn, `Governance.sol` is controlled by two multisigs: Admin multisig (see below) and Security Council multisig (well-respected contributors in the crypto space). Collaboratively, these entities hold the power to implement instant upgrades, whereas Matter Labs alone is limited to scheduling upgrades with a delay.
+* admin - Matter Labs Safe multisig which permission is limited to reverting batches and setting validator timelock. In contrast to the owner, this multisig doesn't have a timelock for execution.
 
 ## Bridgehub
 
 - Acts as a hub for bridges, so that they have a single point of communication with all hyperchain contracts. This allows L1 assets to be locked in the same contract for all hyperchains, including L3s and validiums. The `Bridgehub` also implements the following:
-- `Registry`
     
     This is where hyperchains can register, starting in a permissioned manner, but with the goal to be permissionless in the future. This is where their `chainID` is determined. L3s will also register here. 
     
@@ -77,24 +104,6 @@
     
     The intution behind the `requestL2TransactionTwoBridges` is to allow the second bridge to make a call to the L2 without the user giving control over their baseToken to the contract. If for example, the user wants to deposit an alt token using the second bridge to the L2, then the user only has to approve a base token allowance for the base token bridge, and a alt token allowance for the second bridge. Having the second bridge not handle tokens makes the process simpler and more secure.
 
-## State Transition Manager 
-
-- `StateTransitionManager`
-    
-    A state transition manages proof verification and DA for multiple chains. It also implements the following functionalities: 
-    
-    - `StateTransitionManagerRegistry`
-        
-        The STM is shared for multiple chains, as initialization and upgrades have to be the same for all chains. Registration is not permissionless but happens based on the registrations in the bridgehub’s `Registry`. At registration a `DiamondProxy` is deployed and initialized with the appropriate `Facets` for each Hyperchain. To integrate already deployed chains such as Era, an extra function is called.
-        
-    - `Facets` and `Verifier`
-        
-        are shared across chains that relies on the same STM: `Base`, `Executor` , `Getters`,  `Admin` , `Mailbox.`The `Verifier`  is the contract that actually verifies the proof, and is called by the `Executor`. 
-        
-    - Upgrade Mechanism
-        
-        The system requires all chains to be up-to-date with the latest implementation, so whenever an update is needed, we have to “force” each chain to update, but due to decentralization, we have to give each chain a time frame (more information in the [Upgrade Mechanism](https://www.notion.so/ZK-Stack-shared-bridge-alpha-version-a37c4746f8b54fb899d67e474bfac3bb?pvs=21) section). This is done in the update mechanism contract, this is where the bootloader and system contracts are published, and the `ProposedUpgrade` is stored. Then each chain can call this upgrade for themselves as needed. After the deadline is over, the not-updated chains are frozen, that is, cannot post new proofs. Frozen chains can unfreeze by updating their proof system.
-
 ## Bridges
 
 Bridges are completely separate contracts from the Bridgehub. They are a wrapper for L1 <-> L2 communication on contracts
@@ -145,11 +154,11 @@ Each upgrade consists of two steps:
     - Upgrade with delay. Scheduled operations should elapse the delay period. Both the owner and Security Council can execute this type of upgrade.
     - Instant upgrade. Scheduled operations can be executed at any moment. Only the Security Council can perform this type of upgrade.
 
-Please note, that both the Owner and Security council can cancel the upgrade before its execution. 
+Only Owner can cancel the upgrade before its execution. 
 
 The diagram below outlines the complete journey from the initiation of an operation to its execution.
 
-![governance.png](L1%20smart%20contracts/governance.jpg)
+![governance.png](L1%20smart%20contracts/Governance-scheme.jpg)
 
 ## ValidatorTimelock
 
@@ -171,3 +180,17 @@ to the `proveBatches` function) will be propagated to the zkSync contract. After
 is allowed to call `executeBatches` to propagate the same calldata to zkSync contract. 
 
 The owner of the ValidatorTimelock contract is the same as the owner of the Governance contract - Matter Labs multisig.
+
+### Upgrade mechanism
+
+Currently, there are three types of upgrades for zkSync Era. Normal upgrades (used for new features) are initiated by the Governor (a multisig) and are public for a certain timeframe before they can be applied. Shadow upgrades are similar to normal upgrades, but the data is not known at the moment the upgrade is proposed, but only when executed (they can be executed with the delay, or instantly if approved by the security council). Instant upgrades (used for security issues), on the other hand happen quickly and need to be approved by the Security Council in addition to the Governor. For hyperchains the difference is that upgrades now happen on multiple chains. This is only a problem for shadow upgrades - in this case, the chains have to tightly coordinate to make all the upgrades happen in a short time frame, as the content of the upgrade becomes public once the first chain is upgraded.
+The actual upgrade process is as follows: 
+
+1. Prepare Upgrade for all chains:
+    - The new facets and upgrade contracts have to be deployed,
+    - The upgrade’ calldata (diamondCut, initCalldata with ProposedUpgrade) is hashed on L1 and the hash is saved.
+2. Upgrade specific chain
+    - The upgrade has to be called on the specific chain. The upgrade calldata is passed in as calldata and verified. The protocol version is updated.
+    - Ideally, the upgrade will be very similar for all chains. If it is not, a smart contract can calculate the differences. If this is also not possible, we have to set the `diamondCut` for each chain by hand.
+3. Freeze not upgraded chains
+    - After a certain time the chains that are not upgraded are frozen.
