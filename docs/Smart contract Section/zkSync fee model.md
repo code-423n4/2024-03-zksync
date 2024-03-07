@@ -132,9 +132,7 @@ And the following fluctuating variables:
 Then:
 
 1. `FAIR_L2_GAS_PRICE = MINIMAL_L2_GAS_PRICE + COMPUTE_OVERHEAD_PART * BATCH_OVERHEAD_L1_GAS / MAX_GAS_PER_BATCH`
-2. `FAIR_PUBDATA_PRICE = PUBDATA_BYTE_ETH_PRICE + BATCH_OVERHEAD / MAX_PUBDATA_PER_BATCH`  
-
-> ?? It should be `BATCH_OVERHEAD` or `PUBDATA_OVERHEAD_PART` in the `FAIR_PUBDATA_PRICE` calculation above?
+2. `FAIR_PUBDATA_PRICE = PUBDATA_BYTE_ETH_PRICE + PUBDATA_OVERHEAD_PART * BATCH_OVERHEAD_L1_GAS / MAX_PUBDATA_PER_BATCH`
 
 For L1→L2 transactions, the `MAX_GAS_PER_BATCH` variable is equal to `L2_TX_MAX_GAS_LIMIT` (since this amount of gas is enough to publish the maximal number of pubdata in the batch). Also, for additional security, for L1->L2 transactions the `COMPUTE_OVERHEAD_PART = PUBDATA_OVERHEAD_PART = 1`, i.e. since we are not sure what exactly will be the reason for us closing the batch. For L2 transactions, typically `COMPUTE_OVERHEAD_PART = 0`, since, unlike L1→L2 transactions, in case of an attack, the operator can simply censor bad transactions or increase the `FAIR_L2_GAS_PRICE` and so the operator can use average values for better UX.
 
