@@ -35,7 +35,8 @@
     "ts-node": "^10.1.0",
     "typechain": "^4.0.0",
     "typescript": "^4.6.4",
-    "zksync-ethers": "https://github.com/kelemeno/zksync-ethers#ethers-v5-feat/bridgehub"
+    "zksync-ethers": "https://github.com/kelemeno/zksync-ethers#ethers-v5-feat/bridgehub",
+    "zksync-web3": "^0.15.4"
   },
   "mocha": {
     "timeout": 240000,

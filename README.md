@@ -1,6 +1,6 @@
 # zkSync Era audit details
 - Total Prize Pool: $250,000 in USDC 
-  - HM awards: $208.526 in USDC 
+  - HM awards: $208,526 in USDC 
   - Analysis awards: $0 in USDC 
   - QA awards: $5,487 in USDC
   - Bot Race awards: $0 USDC 
@@ -16,7 +16,7 @@
 
 ## Automated Findings / Publicly Known Issues
 
-The 4naly3er report can be found [here](https://github.com/code-423n4/YYYY-MM-contest-candidate/blob/main/4naly3er-report.md).
+The 4naly3er report can be found [here](https://github.com/code-423n4/2024-03-zksync/blob/main/4naly3er-report.md).
 
 *Note for C4 wardens: Anything included in the 4naly3er report is considered a publicly known issue and is ineligible for awards.*
 
@@ -56,6 +56,8 @@ As part of this security audit, we are focusing on the changes and updates made 
 ### **1. Protocol Section**
 
 - **[Protocol overview](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Protocol%20Section/Overview.md)**
+- **[Migration process](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Protocol%20Section/Migration%20process.md)**
+- **[Changelog](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Protocol%20Section/Changelog.md)**
 
 ### **2. Smart Contracts Section**
 
@@ -68,7 +70,7 @@ Relevant Documentation:
 - **[Handling L1→L2 Ops on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1→L2%20ops%20on%20zkSync.md)**
 - **[Batches & L2 Blocks on zkSync](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md)**
 - **[Elliptic Curve Precompiles](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Elliptic%20curve%20precompiles.md)**
-- **[Handling Pubdata in Boojum](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata%20in%20Boojum.md)**
+- **[Handling Pubdata](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20pubdata.md)**
 - **[Pubdata post EIP-4844](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Pubdata%20Post%204844.md)**
 
 ### **3. VM Section**
@@ -379,3 +381,6 @@ rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03
 ```
 rm -Rf 2024-03-zksync || true && git clone https://github.com/code-423n4/2024-03-zksync.git && cd 2024-03-zksync/code/contracts/zksync/scripts && yarn --ignore-engines && bash quick-setup.sh
 ```
+## Miscellaneous
+
+Employees of zkSync and employees' family members are ineligible to participate in this audit.

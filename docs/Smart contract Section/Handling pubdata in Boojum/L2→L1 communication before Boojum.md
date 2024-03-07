@@ -27,7 +27,7 @@ The hashed array of these opcodes is then included into the [batch commitment](h
 
 ## Important system values
 
-Two `key` and `value` fields are enough for a lot of system-related use-cases, such as sending timestamp of the batch, previous batch hash, etc. They were and are used [used](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/system-contracts/contracts/SystemContext.sol#L438) to verify the correctness of the batch's timestamps and hashes. You can read more about block processing [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md).
+Two `key` and `value` fields are enough for a lot of system-related use-cases, such as sending timestamp of the batch, previous batch hash, etc. They were and are used [used](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/system-contracts/contracts/SystemContext.sol#L466) to verify the correctness of the batch's timestamps and hashes. You can read more about block processing [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Batches%20&%20L2%20blocks%20on%20zkSync.md).
 
 ## Long L2→L1 messages & bytecodes
 
@@ -46,4 +46,4 @@ Note, however, that whenever someone wants to prove that a certain message was p
 
 Also, for each priority operation, we would send its hash and it status via an L2→L1 log. On L1 we would then reconstruct the rolling hash of the processed priority transactions, allowing to correctly verify during the `executeBatches` method that indeed the batch contained the correct priority operations.
 
-Importantly, the fact that both hash and status were sent, it made it possible to [prove](https://github.com/code-423n4/2023-10-zksync/blob/ef99273a8fdb19f5912ca38ba46d6bd02071363d/code/contracts/ethereum/contracts/bridge/L1ERC20Bridge.sol#L255) that the L2 part of a deposit has failed and ask the bridge to release funds.
+Importantly, the fact that both hash and status were sent, it made it possible to [prove](https://github.com/code-423n4/2024-03-zksync/blob/7e85e0a997fee7a6d75cadd03d3233830512c2d2/code/contracts/ethereum/contracts/bridge/L1SharedBridge.sol#L277) that the L2 part of a deposit has failed and ask the bridge to release funds.
