@@ -1,6 +1,6 @@
 # L1 Smart contracts
 
-This section delves into the zkSync Era smart contracts, describing how they facilitate interactions between Ethereum (Layer 1) and hyperchain instances (Layer 2) within zkSync Era ecosystem. While we provide overview of zkSync Era smart contracts here, it's important to note that this document does *NOT* cover the Hyperchain architecture - communication between multiple rollups and shared liqudity in details. For information on the Hyperchain and its functionalities, please refer to [Ecosystem contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/L1%20ecosystem%20contracts.md).
+This section delves into the zkSync Era smart contracts, describing how they facilitate interactions between Ethereum (Layer 1) and hyperchain instances (Layer 2) within zkSync Era ecosystem. While we provide overview of zkSync Era smart contracts here, it's important to note that this document does *NOT* cover the Hyperchain architecture - communication between multiple rollups and shared liqudity in details. For information on the Hyperchain and its functionalities, please refer to [Ecosystem contracts](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/L1%20ecosystem%20contracts.md).
 
 ## Diamond (also mentioned as State Transition contract)
 
