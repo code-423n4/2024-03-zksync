@@ -36,10 +36,7 @@ To not commit to a specific type or option of this “state transition function�
 
 But for now, whenever you see any mentioning of ST, Diamond Proxy, just imagine a single instance of an L2 chain. e.g. zkSync Era is an ST. 
 
-```
 > **NOTE**: Currently deployed zkSync Era also holds ether deposited to the system. After this upgrade, all state transition contracts, including zkSync Era diamond proxy, will no longer directly manage any funds. Instead, this responsibility will transition to the shared bridge. For details on how this migration will be implemented, please refer to [migration doc](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Protocol%20Section/Migration%20process.md). This document described technical details of zkStack contracts that make it possible for multiple L2/L3 chains to share liquidity, and provide cost-effective communication among them. Before delving into the details of ecosystem contracts, please familiarize yourself with the concept of [Hyperchain](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Protocol%20Section/Overview.md#the-hyperchain) and read [L1 smart contracts page](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/L1%20smart%20contracts.md) for a better understanding of single instance hyperchain.
-
-```
 
 ## State transition manager (STM)
 
@@ -177,7 +174,7 @@ In other words, in the current release base assets can only be transfered throug
 
 ### **L1→L2 communication**
 
-L1→L2 communication allows users on L1 to create a request for a transaction to happen on L2. This is the primary censorship resistance mechanism. If you are interested, you can read more on L1→L2 communications [here](https://github.com/code-423n4/2023-10-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1%E2%86%92L2%20ops%20on%20zkSync.md), but for now just understanding that L1→L2 communication allows to request transactions to happen on L2 is enough.
+L1→L2 communication allows users on L1 to create a request for a transaction to happen on L2. This is the primary censorship resistance mechanism. If you are interested, you can read more on L1→L2 communications [here](https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Smart%20contract%20Section/Handling%20L1→L2%20ops%20on%20zkSync.md), but for now just understanding that L1→L2 communication allows to request transactions to happen on L2 is enough.
 
 The L1→L2 communication is also the only way to mint a base asset at the moment. Fees to the operator as well as `msg.value` will be minted on `L2BaseToken` after the corresponding L1→L2 tx has been processed.
 
@@ -206,6 +203,7 @@ Here is a quick guide on how this transaction is routed through the bridgehub.
 1. The bridgehub retrieves the `baseToken`  of the chain with the corresponding `chainId` and deposits `mintValue` tokens to the SharedBridge. In case the baseToken is ETH, it must be provided with the `msg.value` of the L1 transaction. If the base token is an ERC20, the corresponding allowance should be provided beforehand to the SharedBridge.
 
 This step ensures that the baseToken will be backed 1-1 on L1.
+
 2. After that, it just routes the corresponding call to the ST with the corresponding `chainId` . It is now the responsibility of the ST to validate that the transaction is correct and can be accepted by it. This validation includes, but not limited to:
 
 - The fact that the user paid enough funds for the transaction (basically `request.l2GasLimit * derivedL2GasPrice(...) + request.l2Value >= request.mintValue`.
