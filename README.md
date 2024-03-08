@@ -28,7 +28,7 @@ The 4naly3er report can be found [here](https://github.com/code-423n4/2024-03-zk
 
 According to the [EIP-161](https://eips.ethereum.org/EIPS/eip-161), an account is “empty” when it meets the following conditions: it has no deployed code, its nonce value is zero, and it holds a balance of zero. According to [EIP-1052](https://eips.ethereum.org/EIPS/eip-1052), the extcodehash of an empty account should evaluate to `bytes32(0)`, otherwice it is `keccak256(deployedBytecode)`. On zkSync, `bytes32(0)` is returned in case there is no deployed code and nonce is zero regardless of the account balance.
 
-### Validator can provide innefient bytecode compression
+### Validator can provide inefficient bytecode compression
 
 In the current implementation, the mechanism for bytecode compression is not strictly unambiguous. That means the validator has the flexibility to choose a less efficient compression for the bytecode to increase the deployment cost for the end user. Besides that, there is another non-fixed [issue](https://github.com/code-423n4/2023-10-zksync-findings/issues/805), that gives a way for the operator to forces the user to pay more for the bytecode compression or even burn all the transaction gas during bytecode compression verification.
 
