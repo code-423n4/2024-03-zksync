@@ -1,0 +1,451 @@
+==============================================================
+Guild: Code4rena
+Channel: ARCHIVE-Q1-2024 / zksync-mar07
+==============================================================
+
+[03/07/2024 16:10] kartoonjoy (pinned)
+👋 Hello and welcome to the audit channel for the $250,000 in USDC **zkSync Era** audit!
+
+📆 Audit opens 03/07/2024 20:00 (20:00 UTC) and runs through 03/28/2024 20:00 (20:00 UTC) (21 days).
+
+Please give a warm welcome to the zkSync team, particularly @Vlad B | zkSync and @koloz, who will be available for questions either here in the channel or via a PRIVATE thread in the CEST timezone(s).
+
+We'll be posting relevant links, documentation, etc. here, so if you intend to participate in this audit, consider enabling notifications for this channel. 🐺 ⏰
+
+Audit Page: https://code4rena.com/audits/2024-03-zksync-era
+
+{Reactions}
+chefskiss 
+
+[03/07/2024 16:10] kartoonjoy
+Pinned a message.
+
+
+[03/07/2024 20:02] C4 (pinned)
+**Automated Findings / Publicly Known Issues**
+
+Reminder: all [Automated Findings / Publicly Known Issues](https://github.com/code-423n4/2024-03-zksync#automated-findings--publicly-known-issues) are out of scope and ineligible for awards
+
+{Embed}
+https://github.com/code-423n4/2024-03-zksync
+GitHub - code-423n4/2024-03-zksync
+Contribute to code-423n4/2024-03-zksync development by creating an account on GitHub.
+Code4rena - ARCHIVE-Q1-2024 - zksync-mar07 [1214267101947109479].txt_Files/d39ca399-2abe-4e3f-901e-eb59881c27d2-6DDE3
+
+
+[03/07/2024 20:05] kartoonjoy
+Pinned a message.
+
+
+[03/07/2024 20:26] knownfactc4_29311
+@🐺Wardens Please note that a PR needed merged a couple minutes after start. You can see it here: https://github.com/code-423n4/2024-03-zksync/pull/28/files
+
+{Embed}
+https://github.com/code-423n4/2024-03-zksync/pull/28/files
+Update l2 tests instructions and l2 contracts env by AntonD3 · Pull...
+Code4rena - ARCHIVE-Q1-2024 - zksync-mar07 [1214267101947109479].txt_Files/74021421-87255
+
+{Reactions}
+✅ (10) 🙏 (2) 
+
+[03/07/2024 21:26] 0xnirlin
+how different is this audit scope from previous audit?
+
+
+[03/07/2024 21:29] ljb630web3
+Only one way to find out, by auditing
+
+
+[03/07/2024 21:35] vladbochok
+https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Protocol%20Section/Changelog.md
+https://github.com/code-423n4/2024-03-zksync/compare/2023-10-zksync...main
+
+{Embed}
+https://github.com/code-423n4/2024-03-zksync/blob/main/docs/Protocol%20Section/Changelog.md
+2024-03-zksync/docs/Protocol Section/Changelog.md at main · code-42...
+Contribute to code-423n4/2024-03-zksync development by creating an account on GitHub.
+Code4rena - ARCHIVE-Q1-2024 - zksync-mar07 [1214267101947109479].txt_Files/d39ca399-2abe-4e3f-901e-eb59881c27d2-6DDE3
+
+{Embed}
+https://github.com/code-423n4/2024-03-zksync/compare/2023-10-zksync...main
+Comparing 2023-10-zksync...main · code-423n4/2024-03-zksync
+Contribute to code-423n4/2024-03-zksync development by creating an account on GitHub.
+Code4rena - ARCHIVE-Q1-2024 - zksync-mar07 [1214267101947109479].txt_Files/d39ca399-2abe-4e3f-901e-eb59881c27d2-6DDE3
+
+
+[03/07/2024 21:42] 0xnirlin
+a lot of changes :chefskiss:
+
+
+[03/08/2024 02:45] 0x11singh99
+Hi @Vlad B | zkSync Last time when zksync came only L1 contracts was in scope for gas optimizations. But this time no note in readme mentioning about this so we can assume All L1 ,L2 contracts are in scope for gas optimizations   Or that note was missing by mistake ?
+Please clarify  Thanks
+
+
+[03/08/2024 07:42] vladbochok
+Hey @0x11singh99, all L1, L2, and system contracts are in scope for gas optimizations. Please note, L2 contracts and system contracts gas optimisations should be measured according to EraVM environment as a gas model is different.
+
+{Reactions}
+👍 (4) 
+
+[03/08/2024 09:50] csjaybit
+holy shit thats massive codebase
+
+
+[03/08/2024 12:33] forgebyola
+are you up to the challenge
+
+
+[03/08/2024 12:34] forgebyola
+That's how legends are made
+
+
+[03/08/2024 17:40] Deleted User
+why this syntax ``uint256 constant L1_GAS_PER_PUBDATA_BYTE = $(L1_GAS_PER_PUBDATA_BYTE);``   &  it compiled  for the team ?
+
+
+[03/09/2024 09:51] vladbochok
+We are using a solpp preprocessor. This is the program that runs before compilation and can modify code. In order to run the tests please use one-liners from the repo.
+
+
+[03/09/2024 09:59] Deleted User
+& if i only want to compile them with ``forge b``  how can i do, i dont want to execute the tests, just to compile to create my tests
+
+
+[03/09/2024 15:27] koloz193
+You would first run the preprocessor with `npx hardhat solpp` in the folder and then you can compile with `forge build`
+
+
+[03/09/2024 16:51] hgq2wnl
+well that's my mind blown lol. This project is wild, hats off to devs.
+
+{Reactions}
+🙏 (2) 
+
+[03/12/2024 16:32] t0x1c.c0de
+Do the Hardhat L2 contracts run for everyone? I see the following error for 3 tests:
+
+{Attachments}
+Code4rena - ARCHIVE-Q1-2024 - zksync-mar07 [1214267101947109479].txt_Files/image-FF6F2.png
+
+
+[03/12/2024 18:29] forgebyola
+What ethers version are you using?
+
+
+[03/13/2024 03:00] t0x1c.c0de
+9.6.7
+
+{Attachments}
+Code4rena - ARCHIVE-Q1-2024 - zksync-mar07 [1214267101947109479].txt_Files/image-B7E1A.png
+
+
+[03/13/2024 07:42] forgebyola
+For this codebase I think they're using v5, you can see that in the log. Check your dependencies again
+
+
+[03/13/2024 12:44] antond3
+Are you sure that the test node is in a clear state? Can you try to rerun it right before the tests?
+
+{Reactions}
+thankyou 
+
+[03/14/2024 02:02] shealtielanz
+please how do i resolve this
+
+{Attachments}
+Code4rena - ARCHIVE-Q1-2024 - zksync-mar07 [1214267101947109479].txt_Files/Screenshot_from_2024-03-14_03-02-27-37A0D.png
+
+
+[03/14/2024 02:03] shealtielanz
+im trying to build with forge
+
+
+[03/14/2024 09:14] vladbochok
+please run `yarn && yarn build` or use one liner scripts from the repo
+
+{Reactions}
+✅ 
+
+[03/15/2024 04:00] atarpara
+anyone have tx flow resource of zksync era?
+
+
+[03/15/2024 13:40] koloz193
+hey so this is not an official doc but it could be helpful https://blog.quarkslab.com/zksync-transaction-workflow.html
+
+{Embed}
+https://blog.quarkslab.com/zksync-transaction-workflow.html
+Workflow of a zkSync Era transaction: from generation to finalization
+This blog post presents the entire workflow of a transaction executed on zkSync Era. zkSync Era is a Zk Rollup Layer 2 blockchain that executes transactions and proves its execution on the Ethereum blockchain using Zero-Knowledge proofs.
+
+{Reactions}
+👍🏼 (3) 
+
+[03/15/2024 14:18] omi_k
+AFAIK phalcon block explorer by blocksec also support zksync, so you can take the zksync tx hash and put it there
+
+
+[03/15/2024 17:45] forgebyola
+@koloz @Vlad B | zkSync Please check private thread
+
+{Reactions}
+✅ 
+
+[03/15/2024 17:45] forgebyola
+I hope the weekend hasn't started already lol
+
+
+[03/16/2024 20:50] 7a4raf
+whats up with these error messages?
+`            require(msg.value == 0, "ShB m.v > 0 b d.it");
+`
+
+
+[03/16/2024 20:50] 7a4raf
+are they not meant to be human-readable?
+
+
+[03/17/2024 10:50] vladbochok
+They supposed to be unique, so devs and users can find the exact line where error happen
+
+{Reactions}
+👌 
+
+[03/18/2024 17:06] forgebyola
+Please check pvt thread
+
+
+[03/18/2024 19:16] forgebyola
+was there no bot race for this?
+
+
+[03/18/2024 20:05] 7a4raf
+at `Compressor::_verifyValueCompression` why is the result expected to be unchanged after operation type 3 : Transformation ?
+
+
+[03/18/2024 20:49] forgebyola
+Hm where are the sponsors pls
+
+
+[03/19/2024 07:35] aslanbekaibimov
+looks like we have zero knowledge about it
+
+{Reactions}
+😂 
+
+[03/19/2024 09:02] koloz193
+the transform operation just declares what the final value should be unrelated to the initial value
+
+{Reactions}
+👌 
+
+[03/19/2024 09:27] forgebyola
+Was there no bot race?
+
+
+[03/19/2024 09:28] koloz193
+Wdym?
+
+
+[03/19/2024 09:29] forgebyola
+There's usually a bot-race done at the beginning of most audits, I can't find it on the audit page
+
+
+[03/19/2024 09:29] forgebyola
+I would like to check it if there's one
+
+
+[03/19/2024 09:30] forgebyola
+Also, please check my pvt thread
+
+
+[03/19/2024 09:30] forgebyola
+I have a couple of questions
+
+
+[03/19/2024 09:40] 0xsorrynotsorry
+no, there was no bot race, however, there are oos findings spotted by Analyzer. see the message here: https://discord.com/channels/810916927919620096/1214267101947109479/1215389011909157004
+
+{Reactions}
+thankyou 🙏 
+
+[03/19/2024 09:41] forgebyola
+Okay, thank you
+
+{Reactions}
+hi5 
+
+[03/20/2024 07:42] forgebyola
+@Vlad B | zkSync Check pvt thread
+
+{Reactions}
+👍 ✅ (2) 
+
+[03/27/2024 22:27] 0xpessimist
+@koloz @Vlad B | zkSync Could you please check the private thread when you are free? Thx.
+
+{Reactions}
+✅ (2) 
+
+[03/28/2024 19:32] forgebyola
+Thank you for answering all my inquiries @Vlad B | zkSync @koloz I wish you guys good luck with the protocol🤝🏼
+
+{Reactions}
+❤️ 🫡 
+
+[03/28/2024 20:02] C4
+**🚨 AUDIT ALERT**
+
+@🐺Wardens The **zkSync Era** audit is now closed! Huge thanks to everyone who participated 🔍, whether you submitted a finding or not.
+
+What's next: The sponsor team and judge will review the findings over the next couple of weeks. Keep an eye on #📢・c4-updates for regular updates on how the audit is progressing through awarding 🤑🏆, judging 🧑‍⚖️ and reporting 📜. Feel free to ping a Contest-Admin if you have questions along the way!
+
+
+[03/28/2024 20:17] saq_143
+How many submissions ?
+
+
+[03/28/2024 20:24] 0x11singh99
+132
+
+{Reactions}
+👍 (5) 
+
+[03/29/2024 10:40] lsaudit
+who's the judge of this contest?
+
+
+[04/18/2024 20:45] alchmy952
+What's the update, backstage folks?
+
+
+[04/18/2024 22:14] 0x11singh99
+Still in sponsor review
+
+{Reactions}
+👍 (2) 😐 (2) 
+
+[04/19/2024 04:40] xyzbtchunt
+https://tenor.com/view/lama-handsome-handsome-lama-blinking-lama-blink-gif-22584915
+
+{Embed}
+https://tenor.com/view/lama-handsome-handsome-lama-blinking-lama-blink-gif-22584915
+Code4rena - ARCHIVE-Q1-2024 - zksync-mar07 [1214267101947109479].txt_Files/lama-handsome-C4011.png
+
+
+[04/25/2024 02:00] xyzbtchunt
+Any update?
+
+{Reactions}
+chefskiss 
+
+[04/25/2024 02:24] 0x11singh99
+Judging has not been started
+
+{Reactions}
+😐 (3) gummy_wink (2) 
+
+[04/26/2024 14:08] lsaudit
+the announcements channel states that judging has already started, hasn't it?
+
+
+[04/26/2024 15:04] 0x11singh99
+no  it is in judging phase but judge has not started judging.
+
+{Reactions}
+🫡 (2) SBSecurity 
+
+[04/27/2024 01:53] xyzbtchunt
+who's the judge?
+
+
+[04/29/2024 21:28] thebrittfactor
+We have just started Post-Judging QA. Please direct any questions towards that discussion page if you're backstage. Please note that judges have the option to discuss issues further with sponsors before initial judging is concluded, so timings will vary.
+
+
+[05/03/2024 21:46] thebrittfactor
+🤑 🎉  Awards for **zkSync Era**:
+
+$128,509.53 USDC » @bin2chen 
+$68,441.75 USDC » @oakcobalt 
+$6,276.97 USDC » @rvierdiiev 
+$2,432.76 USDC » @Bauchibred 
+$2,176.69 USDC » @lsaudit 
+$1,990.72 USDC » @hihen 
+$975.51 USDC » @0x11singh99 
+$860.68 USDC » ChaseTheLight  
+$805.96 USDC » Dup1337 (@sorryNotsorry and @deliriusz) 
+$619.88 USDC » @DadeKuma 
+$619.88 USDC » Pechenite (@bozho and @radev_sw) 
+$619.88 USDC » @Sathish9098 
+$619.88 USDC » @oualidpro 
+$619.88 USDC » @slvDev 
+$565.16 USDC » @Topmark 
+$565.16 USDC » @XDZIBECX 
+$565.16 USDC » @erebus 
+$565.16 USDC » @forgebyola 
+$565.16 USDC » @021Cartel 
+$423.87 USDC » @bctester 
+$423.87 USDC » zhanmingjing  
+$85.50 USDC » @K42 Ψ 
+$85.50 USDC » @aua_oo7 
+$85.50 USDC » @rjs
+
+🏁 Findings summary
+--------------------------------------
+High risk findings: 1 unique (1 total)
+Med risk findings: 4 unique (17 total)
+Gas reports: 12 (Best: lsaudit)
+QA reports: 7 (Best: Bauchibred)
+
+Awards will be distributed on Polygon within the next week. Congratulations all!  💸 💸 💸
+
+*Note: If you participated in this audit and don’t see your name on this list, please wait until the report is published and the findings repo is made public to check on your submissions.*
+
+{Reactions}
+🔥 (13) 
+
+[05/03/2024 21:56] visualbits
+@bin2chen Great as always, congrats👏
+
+
+[05/03/2024 22:51] 0xpopeye
+@bin2chen 🔥🔥🐐
+
+
+[05/03/2024 23:21] sathish9098kumar
+Congrats @bin2chen
+
+
+[05/04/2024 02:10] skodinger
+well deserved @bin2chen
+
+
+[05/04/2024 02:17] mtberi
+Congrats @0x11singh99
+
+{Reactions}
+thankyou 
+
+[05/04/2024 03:25] oxtenma
+Congrats bro 🎉@0x11singh99
+
+{Reactions}
+thankyou 
+
+[05/09/2024 21:07] itsmetechjay
+ℹ️ This channel is pending archive.   As a result, any private threads will be permanently deleted on Friday, 17 May 2024.  Please make sure to grab anything you might need before then.
+
+
+[05/10/2024 01:12] zmj4107
+@bin2chen 👍
+
+
+[05/16/2024 19:14] itsmetechjay
+ℹ️ Reminder: this channel will be deleted in 24 hours.
+
+
+==============================================================
+Exported 75 message(s)
+==============================================================
